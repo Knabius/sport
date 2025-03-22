@@ -1,0 +1,24 @@
+floor = 600
+ceil = 1200
+doubles = true
+last_exercise = "Pullup"
+
+[exercises]
+
+[exercises.Pullup]
+type = "reps"
+
+[exercises.Pullup.profiles]
+normal = true
+
+[exercises.Pushup]
+type = "reps"
+
+[exercises.Pushup.profiles]
+normal = true
+
+[exercises.Situp]
+type = "reps"
+
+[exercises.Situp.profiles]
+normal = true
