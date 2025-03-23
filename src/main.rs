@@ -1,6 +1,14 @@
 use toml_edit::{DocumentMut, Item, Table, value};
 use std::fs;
+use std::time::Instant;
+use std::process::Command;
 mod funcs;
+
+fn clear_screen() {
+    if cfg!(target_os = "windows") {
+        Command::new("cmd").args(&["/C", "cls"]).status().unwrap();
+    }
+}
 
 fn change_exercise_status(path: &str, exercise: &str) {
     let toml_str: String = fs::read_to_string(path).expect("Fehler beim lesen!");
@@ -106,48 +114,44 @@ fn get_exercises(path: &str) -> Vec<String> {
     exercises
 }
 
-fn main() {
+fn start_timer(path: &str) {
+    let toml_str: String = fs::read_to_string(path).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
-    //profil ändern
-    //profil hinzufügen/löschen
-    //UI
+    let mut floor: i64 = 0;
+    let mut ceil: i64 = 0;
+
+    if let Some(floor_value) = doc.get("floor") {
+        floor = floor_value.as_integer().unwrap();
+    }
+    if let Some(ceil_value) = doc.get("ceil") {
+        ceil = ceil_value.as_integer().unwrap();
+    }
+
+    let time: f64 = rand::random_range(floor..ceil) as f64;
+    let chosen_exercise: String = pick_random_exercise(get_exercises(path));
+    let start_time = Instant::now();
+    let mut duration = start_time.elapsed().as_secs_f64();
+
+    loop {
+        duration = start_time.elapsed().as_secs_f64();
+        clear_screen();
+        println!("{}", duration.round());
+        if duration >= time {break}
+        std::thread::sleep(std::time::Duration::from_secs(1));
+    }
+
+    println!("Übung: {}", chosen_exercise);
+}
+
+fn main() {
+    //TODO(random time picking and logic)
+    //TODO(UI)
+    //TODO(profiles)
+
 
     const PATH_TO_CONFIG: &str = "config.toml";
     const PATH_TO_DATA: &str = "exercise_data.toml";
-    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
-    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
-
-    doc["floor"] = value(600);
-    doc["ceil"] = value(1200);
-    doc["doubles"] = value(true);
-    doc["last_exercise"] = value("Pullup");
-    let mut exercises_table: Table = Table::new();
-
-    let mut pullup_table: Table = Table::new();
-    let mut pullup_profiles: Table = Table::new();
-    pullup_profiles["normal"] = value(true);
-    pullup_table["profiles"] = Item::Table(pullup_profiles);
-    pullup_table["type"] = value("reps");
-    exercises_table["Pullup"] = Item::Table(pullup_table);
-
-    let mut pushup_table: Table = Table::new();
-    let mut pushup_profiles: Table = Table::new();
-    pushup_profiles["normal"] = value(true);
-    pushup_table["profiles"] = Item::Table(pushup_profiles);
-    pushup_table["type"] = value("reps");
-    exercises_table["Pushup"] = Item::Table(pushup_table);
-
-    let mut situp_table: Table = Table::new();
-    let mut situp_profiles: Table = Table::new();
-    situp_profiles["normal"] = value(true);
-    situp_table["profiles"] = Item::Table(situp_profiles);
-    situp_table["type"] = value("reps");
-    exercises_table["Situp"] = Item::Table(situp_table);
-    doc["exercises"] = Item::Table(exercises_table);
-
-    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
-    println!("Erfolgreich geschrieben!");
-
-
-    change_interval(PATH_TO_CONFIG);
+    
+    start_timer(PATH_TO_CONFIG);
 }

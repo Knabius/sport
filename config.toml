@@ -1,5 +1,5 @@
-floor = 600
-ceil = 1200
+floor = 5
+ceil = 10
 doubles = true
 last_exercise = "Pullup"
 
