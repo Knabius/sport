@@ -157,6 +157,7 @@ name = "sport"
 version = "0.1.0"
 dependencies = [
  "rand",
+ "serde",
  "toml",
  "toml_edit",
 ]

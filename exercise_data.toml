@@ -1,0 +1,14 @@
+[Pullup]
+reps = 1500
+amount = 60
+max = 30
+
+[Pushup]
+reps = 2300
+amount = 40
+max = 85
+
+[Situp]
+reps = 200
+amount = 7
+max = 40
