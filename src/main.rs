@@ -4,6 +4,10 @@ use std::time::Instant;
 use std::process::Command;
 mod funcs;
 
+slint::slint! {
+    export { HauptFenster } from "src/ui.slint";
+}
+
 fn clear_screen() {
     if cfg!(target_os = "windows") {
         Command::new("cmd").args(&["/C", "cls"]).status().unwrap();
@@ -145,13 +149,14 @@ fn start_timer(path: &str) {
 }
 
 fn main() {
-    //TODO(random time picking and logic)
     //TODO(UI)
     //TODO(profiles)
 
-
     const PATH_TO_CONFIG: &str = "config.toml";
     const PATH_TO_DATA: &str = "exercise_data.toml";
+
+    let ui = HauptFenster::new().unwrap();
+    ui.run().unwrap();
     
     start_timer(PATH_TO_CONFIG);
 }

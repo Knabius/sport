@@ -7,6 +7,7 @@ edition = "2024"
 rand = "0.9.0"
 serde = "1.0.219"
 slint = "1.10.0"
+slint-interpreter = "1.10.0"
 toml = "0.8.20"
 toml_edit = "0.22.24"
 
@@ -16,4 +17,7 @@ unused_must_use = "allow"
 unused_mut = "allow"
 unused_variables = "allow"
 unused_imports = "allow"
-unused_assigments = "allow"
+unused_assignments = "allow"
+
+[build-dependencies]
+slint-build = "1.10.0"
