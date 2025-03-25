@@ -1711,12 +1711,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "generativity"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5881e4c3c2433fe4905bb19cfd2b5d49d4248274862b68c27c33d9ba4e13f9ec"
-
-[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4367,29 +4361,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "slint-interpreter"
-version = "1.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54b074a425dc4c278c182e74b12aa8e1270bba5966301324194ae38c1e9de74c"
-dependencies = [
- "derive_more",
- "generativity",
- "i-slint-backend-qt",
- "i-slint-backend-selector",
- "i-slint-backend-winit",
- "i-slint-common",
- "i-slint-compiler",
- "i-slint-core",
- "itertools 0.14.0",
- "lyon_path",
- "once_cell",
- "smol_str 0.3.2",
- "unicode-segmentation",
- "vtable",
- "web-sys",
-]
-
-[[package]]
 name = "slint-macros"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4516,10 +4487,8 @@ name = "sport"
 version = "0.1.0"
 dependencies = [
  "rand 0.9.0",
- "serde",
  "slint",
  "slint-build",
- "slint-interpreter",
  "toml",
  "toml_edit 0.22.24",
 ]

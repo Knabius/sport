@@ -1,10 +1,80 @@
-export component HauptFenster inherits Window {
-    width: 700px;
-    height: 400px;
+component StartButton inherits Rectangle {
+    in-out property <string> text;
+    in-out property <bool> status;
+    in-out property<int> counter: 0;
+    height: 300px;
+    width: self.height;
+    background: #026F8F;
+    border-radius: self.height/2;
+    
     Text {
-        text: "Hallo Slint!";
-        x: 50px;
-        y: 80px;
-        font-size: 50px;
+        text: text;
+        font-size: 40px;
+    }
+
+    TouchArea {
+        enabled: status;
+        clicked => { parent.counter += 1; }
+    }
+}
+
+
+export component HauptFenster inherits Window {
+    width: 1200px;
+    height: 800px;
+    HorizontalLayout {
+        width: parent.width;
+        height: parent.height;
+        alignment: center;
+
+        VerticalLayout {
+            //width: contentWidth;
+            //height: contentHeight;
+            alignment: center;
+            spacing: 20px;  // Add some consistent spacing
+
+            StartButton {
+                text: "Start";
+                status: true;
+            }
+
+            HorizontalLayout {
+                spacing: 5px;
+                
+                Rectangle {
+                    width: 200px;
+                    height: 40px;
+                    background: #41667188;
+                    border-radius: 10px;
+                    
+                    TextInput {
+                        //anchors.fill: parent;
+                        color: #FFFFFF;
+                        font-size: 20px;
+                        selection-background-color: #026F8F;
+                        text: "a";
+                        //verticalAlignment: TextInput.AlignVCenter;
+                        //horizontalAlignment: TextInput.AlignHCenter;
+                    }
+                }
+
+                Rectangle {
+                    width: 200px;
+                    height: 40px;
+                    background: #41667188;
+                    border-radius: 10px;
+                    
+                    TextInput {
+                        //anchors.fill: parent;
+                        color: #FFFFFF;
+                        font-size: 20px;
+                        selection-background-color: #026F8F;
+                        text: "a";
+                        //verticalAlignment: TextInput.AlignVCenter;
+                        //horizontalAlignment: TextInput.AlignHCenter;
+                    }
+                }
+            }
+        }
     }
 }
