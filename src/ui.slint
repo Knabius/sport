@@ -8,7 +8,7 @@ component StartButton inherits Rectangle {
     border-radius: self.height/2;
     
     Text {
-        text: text;
+        text: text + " (" + counter + ")";
         font-size: 40px;
     }
 
@@ -18,29 +18,22 @@ component StartButton inherits Rectangle {
     }
 }
 
-
-export component HauptFenster inherits Window {
+export component MainWindow inherits Window {
     width: 1200px;
     height: 800px;
     HorizontalLayout {
-        width: parent.width;
-        height: parent.height;
         alignment: center;
-
         VerticalLayout {
-            //width: contentWidth;
-            //height: contentHeight;
             alignment: center;
-            spacing: 20px;  // Add some consistent spacing
-
-            StartButton {
-                text: "Start";
-                status: true;
-            }
-
             HorizontalLayout {
-                spacing: 5px;
-                
+                alignment: center;
+                StartButton {
+                    text: "Start";
+                    status: true;
+                }
+            }
+            HorizontalLayout {
+                alignment: center;
                 Rectangle {
                     width: 200px;
                     height: 40px;
@@ -48,16 +41,12 @@ export component HauptFenster inherits Window {
                     border-radius: 10px;
                     
                     TextInput {
-                        //anchors.fill: parent;
                         color: #FFFFFF;
                         font-size: 20px;
                         selection-background-color: #026F8F;
                         text: "a";
-                        //verticalAlignment: TextInput.AlignVCenter;
-                        //horizontalAlignment: TextInput.AlignHCenter;
                     }
                 }
-
                 Rectangle {
                     width: 200px;
                     height: 40px;
@@ -65,15 +54,12 @@ export component HauptFenster inherits Window {
                     border-radius: 10px;
                     
                     TextInput {
-                        //anchors.fill: parent;
                         color: #FFFFFF;
                         font-size: 20px;
                         selection-background-color: #026F8F;
                         text: "a";
-                        //verticalAlignment: TextInput.AlignVCenter;
-                        //horizontalAlignment: TextInput.AlignHCenter;
                     }
-                }
+                }            
             }
         }
     }
