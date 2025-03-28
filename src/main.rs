@@ -156,6 +156,14 @@ fn main() {
     const PATH_TO_DATA: &str = "exercise_data.toml";
 
     let ui = MainWindow::new().unwrap();
+    let ui_handle = ui.as_weak();
+    ui.on_start_pressed(move |floor, ceil| {
+        println!("Floor: {}\n Ceil: {}", floor, ceil);
+        //TODO change_interval
+        //if let Some(handle) = ui_handle.upgrade() {
+        //    handle.set_result_text = (string.into());
+        //}
+    });
     ui.run().unwrap();
     
     start_timer(PATH_TO_CONFIG);

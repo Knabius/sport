@@ -2,10 +2,15 @@ component StartButton inherits Rectangle {
     in-out property <string> text;
     in-out property <bool> status;
     in-out property<int> counter: 0;
+
+    callback button_pressed();
+
     height: 300px;
     width: self.height;
     background: #026F8F;
     border-radius: self.height/2;
+    border-width: 2px;
+    border-color: Colors.black;
     
     Text {
         text: text + " (" + counter + ")";
@@ -13,51 +18,67 @@ component StartButton inherits Rectangle {
     }
 
     TouchArea {
-        enabled: status;
-        clicked => { parent.counter += 1; }
+        enabled: root.status;
+        clicked => { 
+            root.button_pressed();
+        }
+        //TODO animierung für den knopfdruck
     }
 }
 
 export component MainWindow inherits Window {
+    callback start_pressed(string, string);
+
     width: 1200px;
     height: 800px;
     HorizontalLayout {
         alignment: center;
         VerticalLayout {
+            spacing: 20px;
             alignment: center;
             HorizontalLayout {
                 alignment: center;
-                StartButton {
+                start_button := StartButton {
                     text: "Start";
                     status: true;
+                    button_pressed => {root.start_pressed(floor_input.text, ceil_input.text)}
                 }
             }
             HorizontalLayout {
                 alignment: center;
+                spacing: 10px;
                 Rectangle {
-                    width: 200px;
+                    width: 150px;
                     height: 40px;
                     background: #41667188;
                     border-radius: 10px;
+                    border-width: 1px;
+                    border-color: Colors.black;
                     
-                    TextInput {
+                    floor_input := TextInput {
                         color: #FFFFFF;
                         font-size: 20px;
                         selection-background-color: #026F8F;
                         text: "a";
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
                     }
                 }
                 Rectangle {
-                    width: 200px;
+                    width: 150px;
                     height: 40px;
                     background: #41667188;
                     border-radius: 10px;
+                    border-width: 1px;
+                    border-color: Colors.black;
                     
-                    TextInput {
+                    ceil_input := TextInput {
                         color: #FFFFFF;
                         font-size: 20px;
                         selection-background-color: #026F8F;
                         text: "a";
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
                     }
                 }            
             }
