@@ -29,6 +29,40 @@ component StartButton inherits Rectangle {
 export component MainWindow inherits Window {
     callback start_pressed(string, string);
 
+    in-out property <bool> floor_input_invalid: false;
+    in-out property <bool> ceil_input_invalid: false;
+
+    in-out property <color> floor_color: #41667188;
+    in-out property <color> ceil_color: #41667188;
+    animate floor_color {duration: 500ms; easing: ease-out;}
+    animate ceil_color {duration: 500ms; easing: ease-out;}
+
+    flash_timer := Timer {
+        interval: 50ms;
+        triggered => {
+            if (floor_input_invalid == true) {
+                root.floor_color = #41667188;
+                floor_input_invalid = false;
+            }
+            if (ceil_input_invalid == true) {
+                root.ceil_color = #41667188;
+                ceil_input_invalid = false;
+            }
+            self.running = false;
+        }
+    }
+
+    public function text_input_flash() {
+        if (floor_input_invalid == true) {
+            root.floor_color = #FF0000;
+        }
+        if (ceil_input_invalid == true) {
+            root.ceil_color = #FF0000;
+        }
+        flash_timer.running = true;
+
+    }
+
     width: 1200px;
     height: 800px;
     HorizontalLayout {
@@ -50,7 +84,7 @@ export component MainWindow inherits Window {
                 Rectangle {
                     width: 150px;
                     height: 40px;
-                    background: #41667188;
+                    background: floor_color;
                     border-radius: 10px;
                     border-width: 1px;
                     border-color: Colors.black;
@@ -58,8 +92,8 @@ export component MainWindow inherits Window {
                     floor_input := TextInput {
                         color: #FFFFFF;
                         font-size: 20px;
-                        selection-background-color: #026F8F;
-                        text: "a";
+                        //selection-background-color: #026F8F;
+                        text: "From:";
                         horizontal-alignment: center;
                         vertical-alignment: center;
                     }
@@ -67,7 +101,7 @@ export component MainWindow inherits Window {
                 Rectangle {
                     width: 150px;
                     height: 40px;
-                    background: #41667188;
+                    background: ceil_color;
                     border-radius: 10px;
                     border-width: 1px;
                     border-color: Colors.black;
@@ -75,8 +109,8 @@ export component MainWindow inherits Window {
                     ceil_input := TextInput {
                         color: #FFFFFF;
                         font-size: 20px;
-                        selection-background-color: #026F8F;
-                        text: "a";
+                        //selection-background-color: #026F8F;
+                        text: "To:";
                         horizontal-alignment: center;
                         vertical-alignment: center;
                     }

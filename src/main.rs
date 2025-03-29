@@ -2,6 +2,7 @@ use toml_edit::{DocumentMut, Item, Table, value};
 use std::fs;
 use std::time::Instant;
 use std::process::Command;
+use slint::SharedString;
 mod funcs;
 
 slint::slint! {
@@ -82,16 +83,26 @@ fn add_reps(path: &str, exercise: &str, reps: i32) {
     }
 }
 
-fn change_interval(path: &str) {
+fn change_interval(path: &str, floor: SharedString, ceil: SharedString) -> i32 {
     let toml_str: String = fs::read_to_string(path).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
-    let floor:String  = funcs::safe_string_input("From: ");
-    let ceil:String  = funcs::safe_string_input("To: ");
-    doc["floor"] = value(floor);
-    doc["ceil"] = value(ceil);
-    
-    fs::write(path, doc.to_string()).expect("Fehler beim Schreiben!");
+    let mut problem_number: i32 = 0;
+
+    let floor_value: &str  = floor.as_str();
+    let ceil_value: &str   = ceil.as_str();
+    if let Ok(floor) = floor_value.parse::<i64>() {
+        doc["floor"] = value(floor);
+    } else {problem_number += 1}
+    if let Ok(ceil) = ceil_value.parse::<i64>() {
+        doc["ceil"] = value(ceil);
+    } else {problem_number += 2}
+
+    if problem_number == 0 {
+        fs::write(path, doc.to_string()).expect("Fehler beim Schreiben!");
+    }
+    problem_number    
+    //TODO nachgucken ob wirklich zahlen, wenn nicht dann slint sagen er hat fehler
 }
 
 fn pick_random_exercise(exercises: Vec<String>) -> String {
@@ -157,14 +168,32 @@ fn main() {
 
     let ui = MainWindow::new().unwrap();
     let ui_handle = ui.as_weak();
-    ui.on_start_pressed(move |floor, ceil| {
+    ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
         println!("Floor: {}\n Ceil: {}", floor, ceil);
-        //TODO change_interval
-        //if let Some(handle) = ui_handle.upgrade() {
-        //    handle.set_result_text = (string.into());
-        //}
+
+        let problem_number: i32 = change_interval(PATH_TO_CONFIG, floor, ceil);
+        println!("Problems: {}", problem_number);
+        match problem_number {
+            0 => {},
+            1 => if let Some(handle) = ui_handle.upgrade() {
+                    handle.set_floor_input_invalid(true);
+                    handle.invoke_text_input_flash();
+                },
+            2 => if let Some(handle) = ui_handle.upgrade() {
+                    handle.set_ceil_input_invalid(true);
+                    handle.invoke_text_input_flash();
+                },
+            3 => if let Some(handle) = ui_handle.upgrade() {
+                    handle.set_floor_input_invalid(true);
+                    handle.set_ceil_input_invalid(true);
+                    handle.invoke_text_input_flash();
+                },
+            _ => {},
+        }
     });
     ui.run().unwrap();
     
-    start_timer(PATH_TO_CONFIG);
 }
+
+//TODO direkt am anfang die ersten werte für floor und ceil aus dem config übergeben
+//TODO knopf farbe und aufschrift ändern
