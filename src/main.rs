@@ -2,7 +2,9 @@ use toml_edit::{DocumentMut, Item, Table, value};
 use std::fs;
 use std::time::Instant;
 use std::process::Command;
-use slint::SharedString;
+use slint::{SharedString, Timer, TimerMode};
+use std::rc::Rc;
+use std::cell::RefCell;
 mod funcs;
 
 const PATH_TO_CONFIG: &str = "config.toml";
@@ -112,8 +114,8 @@ fn pick_random_exercise(exercises: Vec<String>) -> String {
     exercises[index].clone()
 }
 
-fn get_exercises(path: &str) -> Vec<String> {
-    let toml_str: String = fs::read_to_string(path).expect("Fehler beim lesen!");
+fn get_exercises() -> Vec<String> {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut exercises: Vec<String> = Vec::new();
@@ -135,7 +137,7 @@ fn start_timer(path: &str) {
     let interval: (i64, i64) = get_interval();
 
     let time: f64 = rand::random_range(interval.0..interval.1) as f64;
-    let chosen_exercise: String = pick_random_exercise(get_exercises(path));
+    let chosen_exercise: String = pick_random_exercise(get_exercises());
     let start_time = Instant::now();
     let mut duration = start_time.elapsed().as_secs_f64();
 
@@ -175,18 +177,61 @@ fn main() {
     // true => time-loop inaktiv
     // false => time-loop aktiv
     let mut start_button_status: bool = true;
+
+    //REMINDER könnte alles in ein if let Some(handle)
+    let is_running = Rc::new(RefCell::new(true));
+    let is_running_clone = is_running.clone();
+    let start_button_status = Rc::new(RefCell::new(true));
+    let start_button_status_clone = start_button_status.clone();
+
+
     ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
-        //REMINDER könnte alles in ein if let Some(handle)
-        if start_button_status == true {
-            //TODO wahrscheinlich muss der gesamte time-loop hier rein damit 
-            println!("Floor: {}\n Ceil: {}", floor, ceil);
+
+        if *start_button_status_clone.borrow() == true {
+
             let problem_number: i32 = change_interval(PATH_TO_CONFIG, floor, ceil);
-            println!("Problems: {}", problem_number);
+
             match problem_number {
                 0 => if let Some(handle) = ui_handle.upgrade() {
-                        start_button_status = false;
-                        handle.set_start_button_status(start_button_status);
+                        *start_button_status_clone.borrow_mut() = false;
+                        handle.set_start_button_status(false);
+
+                        let interval: (i64, i64) = get_interval();
+                        let time: f64 = rand::random_range(interval.0..interval.1) as f64;
+                        let chosen_exercise: String = pick_random_exercise(get_exercises());
+                        let start_time = Instant::now();
                         
+                        let timer = Rc::new(Timer::default());
+                        let timer_clone = timer.clone();
+                        *is_running_clone.borrow_mut() = true;
+                        let is_running_deep = is_running_clone.clone();
+                        let start_button_status_deep = start_button_status_clone.clone();
+                        let ui_handle_deep = ui_handle.clone();
+
+                        timer.start(TimerMode::Repeated, std::time::Duration::from_secs(1), move || {
+                            let duration: f64 = start_time.elapsed().as_secs_f64();
+
+                            if duration >= time {
+                                timer_clone.stop();
+                                println!("{}", chosen_exercise);
+                                *start_button_status_deep.borrow_mut() = true;
+                                if let Some(handle) = ui_handle_deep.upgrade() {
+                                    handle.set_start_button_status(true);
+                                }
+                                //TODO was passiert wenn zeit um
+                            } else if !*is_running_deep.borrow() {
+                                timer_clone.stop();
+                                *start_button_status_deep.borrow_mut() = true;
+                                if let Some(handle) = ui_handle_deep.upgrade() {
+                                    handle.set_start_button_status(true);
+                                }
+                                //TODO gucken was passieren muss wenn abgebrochen
+                            } else {
+                                clear_screen();
+                                println!("{}", duration.round());
+                            }
+                        });
+                       
                     },
                 1 => if let Some(handle) = ui_handle.upgrade() {
                         handle.set_floor_input_invalid(true);
@@ -203,10 +248,11 @@ fn main() {
                     },
                 _ => {},
             }
-        } else if start_button_status == false {
+        } else if *start_button_status_clone.borrow() == false {
+            *is_running_clone.borrow_mut() = false;
             if let Some(handle) = ui_handle.upgrade() {
-                start_button_status = true;
-                handle.set_start_button_status(start_button_status);
+                *start_button_status_clone.borrow_mut() = true;
+                handle.set_start_button_status(true);
             }
         }
     });
