@@ -1,28 +1,27 @@
 component StartButton inherits Rectangle {
-    in-out property <string> text;
     in-out property <bool> status;
-    in-out property<int> counter: 0;
 
     callback button_pressed();
 
     height: 300px;
     width: self.height;
-    background: #026F8F;
+    background: status ? #026F8F : #B71C1C;
     border-radius: self.height/2;
     border-width: 2px;
     border-color: Colors.black;
+    clip: true;
     
     Text {
-        text: text + " (" + counter + ")";
+        text: status ? "Start" : "Stop";
         font-size: 40px;
     }
 
     TouchArea {
-        enabled: root.status;
+        width: parent.width;
+        height: parent.height;
         clicked => { 
             root.button_pressed();
         }
-        //TODO animierung für den knopfdruck
     }
 }
 
@@ -30,7 +29,11 @@ export component MainWindow inherits Window {
     callback start_pressed(string, string);
 
     in-out property <bool> floor_input_invalid: false;
+    in-out property <int> initial_floor_value;
     in-out property <bool> ceil_input_invalid: false;
+    in-out property <int> initial_ceil_value;
+
+    in-out property <bool> start_button_status: true;
 
     in-out property <color> floor_color: #41667188;
     in-out property <color> ceil_color: #41667188;
@@ -60,7 +63,6 @@ export component MainWindow inherits Window {
             root.ceil_color = #FF0000;
         }
         flash_timer.running = true;
-
     }
 
     width: 1200px;
@@ -73,9 +75,10 @@ export component MainWindow inherits Window {
             HorizontalLayout {
                 alignment: center;
                 start_button := StartButton {
-                    text: "Start";
-                    status: true;
-                    button_pressed => {root.start_pressed(floor_input.text, ceil_input.text)}
+                    status: start_button_status;
+                    button_pressed => {
+                        root.start_pressed(floor_input.text, ceil_input.text);
+                    }
                 }
             }
             HorizontalLayout {
@@ -93,7 +96,7 @@ export component MainWindow inherits Window {
                         color: #FFFFFF;
                         font-size: 20px;
                         //selection-background-color: #026F8F;
-                        text: "From:";
+                        text: initial_floor_value;
                         horizontal-alignment: center;
                         vertical-alignment: center;
                     }
@@ -110,7 +113,7 @@ export component MainWindow inherits Window {
                         color: #FFFFFF;
                         font-size: 20px;
                         //selection-background-color: #026F8F;
-                        text: "To:";
+                        text: initial_ceil_value;
                         horizontal-alignment: center;
                         vertical-alignment: center;
                     }

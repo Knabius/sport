@@ -5,6 +5,9 @@ use std::process::Command;
 use slint::SharedString;
 mod funcs;
 
+const PATH_TO_CONFIG: &str = "config.toml";
+const PATH_TO_DATA: &str = "exercise_data.toml";
+
 slint::slint! {
     export { MainWindow } from "src/ui.slint";
 }
@@ -102,7 +105,6 @@ fn change_interval(path: &str, floor: SharedString, ceil: SharedString) -> i32 {
         fs::write(path, doc.to_string()).expect("Fehler beim Schreiben!");
     }
     problem_number    
-    //TODO nachgucken ob wirklich zahlen, wenn nicht dann slint sagen er hat fehler
 }
 
 fn pick_random_exercise(exercises: Vec<String>) -> String {
@@ -130,20 +132,9 @@ fn get_exercises(path: &str) -> Vec<String> {
 }
 
 fn start_timer(path: &str) {
-    let toml_str: String = fs::read_to_string(path).expect("Fehler beim lesen!");
-    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    let interval: (i64, i64) = get_interval();
 
-    let mut floor: i64 = 0;
-    let mut ceil: i64 = 0;
-
-    if let Some(floor_value) = doc.get("floor") {
-        floor = floor_value.as_integer().unwrap();
-    }
-    if let Some(ceil_value) = doc.get("ceil") {
-        ceil = ceil_value.as_integer().unwrap();
-    }
-
-    let time: f64 = rand::random_range(floor..ceil) as f64;
+    let time: f64 = rand::random_range(interval.0..interval.1) as f64;
     let chosen_exercise: String = pick_random_exercise(get_exercises(path));
     let start_time = Instant::now();
     let mut duration = start_time.elapsed().as_secs_f64();
@@ -159,41 +150,68 @@ fn start_timer(path: &str) {
     println!("Übung: {}", chosen_exercise);
 }
 
+fn get_interval() -> (i64, i64) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    if let Some(floor) = doc.get("floor") {
+        if let Some(ceil) = doc.get("ceil") {
+            let tup: (i64, i64) = (floor.as_integer().unwrap(), ceil.as_integer().unwrap());
+            return tup;
+        }
+    }
+    (10,20)
+}
+
 fn main() {
-    //TODO(UI)
-    //TODO(profiles)
-
-    const PATH_TO_CONFIG: &str = "config.toml";
-    const PATH_TO_DATA: &str = "exercise_data.toml";
-
     let ui = MainWindow::new().unwrap();
     let ui_handle = ui.as_weak();
-    ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
-        println!("Floor: {}\n Ceil: {}", floor, ceil);
+    if let Some(handle) = ui_handle.upgrade() {
+        let interval: (i64, i64) = get_interval();
+        handle.set_initial_floor_value(interval.0 as i32);
+        handle.set_initial_ceil_value(interval.1 as i32);
+    }
 
-        let problem_number: i32 = change_interval(PATH_TO_CONFIG, floor, ceil);
-        println!("Problems: {}", problem_number);
-        match problem_number {
-            0 => {},
-            1 => if let Some(handle) = ui_handle.upgrade() {
-                    handle.set_floor_input_invalid(true);
-                    handle.invoke_text_input_flash();
-                },
-            2 => if let Some(handle) = ui_handle.upgrade() {
-                    handle.set_ceil_input_invalid(true);
-                    handle.invoke_text_input_flash();
-                },
-            3 => if let Some(handle) = ui_handle.upgrade() {
-                    handle.set_floor_input_invalid(true);
-                    handle.set_ceil_input_invalid(true);
-                    handle.invoke_text_input_flash();
-                },
-            _ => {},
+    // true => time-loop inaktiv
+    // false => time-loop aktiv
+    let mut start_button_status: bool = true;
+    ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
+        //REMINDER könnte alles in ein if let Some(handle)
+        if start_button_status == true {
+            //TODO wahrscheinlich muss der gesamte time-loop hier rein damit 
+            println!("Floor: {}\n Ceil: {}", floor, ceil);
+            let problem_number: i32 = change_interval(PATH_TO_CONFIG, floor, ceil);
+            println!("Problems: {}", problem_number);
+            match problem_number {
+                0 => if let Some(handle) = ui_handle.upgrade() {
+                        start_button_status = false;
+                        handle.set_start_button_status(start_button_status);
+                        
+                    },
+                1 => if let Some(handle) = ui_handle.upgrade() {
+                        handle.set_floor_input_invalid(true);
+                        handle.invoke_text_input_flash();
+                    },
+                2 => if let Some(handle) = ui_handle.upgrade() {
+                        handle.set_ceil_input_invalid(true);
+                        handle.invoke_text_input_flash();
+                    },
+                3 => if let Some(handle) = ui_handle.upgrade() {
+                        handle.set_floor_input_invalid(true);
+                        handle.set_ceil_input_invalid(true);
+                        handle.invoke_text_input_flash();
+                    },
+                _ => {},
+            }
+        } else if start_button_status == false {
+            if let Some(handle) = ui_handle.upgrade() {
+                start_button_status = true;
+                handle.set_start_button_status(start_button_status);
+            }
         }
     });
     ui.run().unwrap();
     
 }
 
-//TODO direkt am anfang die ersten werte für floor und ceil aus dem config übergeben
-//TODO knopf farbe und aufschrift ändern
+//TODO profiles
