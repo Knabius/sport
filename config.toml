@@ -1,5 +1,5 @@
-floor = 2
-ceil = 10
+floor = 10
+ceil = 20
 doubles = true
 last_exercise = "Pullup"
 

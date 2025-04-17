@@ -10,6 +10,7 @@ component StartButton inherits Rectangle {
     border-width: 2px;
     border-color: Colors.black;
     clip: true;
+    //TODO button invisible wenn fertig und wieder visible wenn weiter
     
     Text {
         text: status ? "Start" : "Stop";
@@ -81,6 +82,7 @@ export component MainWindow inherits Window {
                     }
                 }
             }
+            //TODO auch beide unsichtbar und danach wieder visible
             HorizontalLayout {
                 alignment: center;
                 spacing: 10px;

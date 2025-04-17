@@ -218,20 +218,20 @@ fn main() {
                                 if let Some(handle) = ui_handle_deep.upgrade() {
                                     handle.set_start_button_status(true);
                                 }
-                                //TODO was passiert wenn zeit um
                             } else if !*is_running_deep.borrow() {
                                 timer_clone.stop();
                                 *start_button_status_deep.borrow_mut() = true;
                                 if let Some(handle) = ui_handle_deep.upgrade() {
                                     handle.set_start_button_status(true);
                                 }
-                                //TODO gucken was passieren muss wenn abgebrochen
                             } else {
                                 clear_screen();
                                 println!("{}", duration.round());
                             }
+                            //TODO während timer durchlauf auch zeit in window anzeigen
+                            //TODO widgets auf invisible stellen
+                            //TODO in funktion für erledigte reps wieder auf visible
                         });
-                       
                     },
                 1 => if let Some(handle) = ui_handle.upgrade() {
                         handle.set_floor_input_invalid(true);
@@ -261,3 +261,6 @@ fn main() {
 }
 
 //TODO profiles
+//TODO anzeige welche aufgabe
+//TODO eingabe für die wiederholungen mit button zum abschicken
+//TODO Menü mit knopf für +Übung, -Übung, welche übungen an sind, andere optionen
