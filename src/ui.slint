@@ -1,5 +1,6 @@
 component StartButton inherits Rectangle {
     in-out property <bool> status;
+    in-out property <int> time;
 
     callback button_pressed();
 
@@ -10,10 +11,9 @@ component StartButton inherits Rectangle {
     border-width: 2px;
     border-color: Colors.black;
     clip: true;
-    //TODO button invisible wenn fertig und wieder visible wenn weiter
     
     Text {
-        text: status ? "Start" : "Stop";
+        text: status ? "Start" : time + "s";
         font-size: 40px;
     }
 
@@ -26,15 +26,100 @@ component StartButton inherits Rectangle {
     }
 }
 
+component RepInput inherits Rectangle {
+    callback save_reps(string);
+
+    in property <string> exercise;
+
+    VerticalLayout {
+        alignment: center;
+        spacing: 5px;
+        HorizontalLayout {
+            alignment: center;
+            Text {
+                text: exercise + "s";
+                font-size: 40px;
+                color: #026F8F;
+            }
+        }
+        HorizontalLayout {
+            alignment: center;
+            padding: 10px;
+            Text {
+                text: "Enter amount of completed reps below";
+                font-size: 15px;
+            }
+        }
+        HorizontalLayout {
+            alignment: center;
+            Rectangle {
+                width: 150px;
+                height: 40px;
+                background: #41667188;
+                border-radius: 10px;
+                border-width: 1px;
+                border-color: Colors.black;
+        
+                reps := TextInput {
+                    color: Colors.white;
+                    font-size: 20px;
+                    text: "0";
+                    input-type: number;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+        HorizontalLayout {
+            alignment: center;
+            Rectangle {
+                width: 80px;
+                height: 40px;
+                background: #026F8F;
+                border-radius: 10px;
+                border-width: 1px;
+                border-color: Colors.black;
+    
+                Text {
+                    text: "Save";
+                    font-size: 20px;
+                }
+
+                TouchArea {
+                    width: parent.width;
+                    height: parent.height;
+                    clicked => { 
+                        root.save_reps(reps.text);
+                        reps.text = "0";
+                    }
+                }
+            }
+        }
+    }
+}
+
+enum CurrentView {
+    BasicButton,
+    RepInput
+}
+
 export component MainWindow inherits Window {
+    in-out property <CurrentView> current_view: CurrentView.BasicButton;
+
     callback start_pressed(string, string);
+    callback save_reps(string);
 
     in-out property <bool> floor_input_invalid: false;
     in-out property <int> initial_floor_value;
     in-out property <bool> ceil_input_invalid: false;
     in-out property <int> initial_ceil_value;
 
+    in-out property <bool> center_visibility: true;
+
     in-out property <bool> start_button_status: true;
+    in-out property <int> passed_time: 0;
+
+    in property <string> chosen_exercise: "";
 
     in-out property <color> floor_color: #41667188;
     in-out property <color> ceil_color: #41667188;
@@ -68,7 +153,17 @@ export component MainWindow inherits Window {
 
     width: 1200px;
     height: 800px;
+
+    RepInput {
+        visible: current_view == CurrentView.RepInput;
+        exercise: chosen_exercise;
+        save_reps(reps) => {
+            root.save_reps(reps);
+        }
+    }
+
     HorizontalLayout {
+        visible: current_view == CurrentView.BasicButton;
         alignment: center;
         VerticalLayout {
             spacing: 20px;
@@ -76,13 +171,14 @@ export component MainWindow inherits Window {
             HorizontalLayout {
                 alignment: center;
                 start_button := StartButton {
+                    time: passed_time;
                     status: start_button_status;
                     button_pressed => {
                         root.start_pressed(floor_input.text, ceil_input.text);
+                        passed_time = 0;
                     }
                 }
             }
-            //TODO auch beide unsichtbar und danach wieder visible
             HorizontalLayout {
                 alignment: center;
                 spacing: 10px;
@@ -97,7 +193,7 @@ export component MainWindow inherits Window {
                     floor_input := TextInput {
                         color: #FFFFFF;
                         font-size: 20px;
-                        //selection-background-color: #026F8F;
+                        input-type: number;
                         text: initial_floor_value;
                         horizontal-alignment: center;
                         vertical-alignment: center;
@@ -114,7 +210,7 @@ export component MainWindow inherits Window {
                     ceil_input := TextInput {
                         color: #FFFFFF;
                         font-size: 20px;
-                        //selection-background-color: #026F8F;
+                        input-type: number;
                         text: initial_ceil_value;
                         horizontal-alignment: center;
                         vertical-alignment: center;
@@ -124,3 +220,4 @@ export component MainWindow inherits Window {
         }
     }
 }
+

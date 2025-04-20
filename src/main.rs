@@ -20,8 +20,8 @@ fn clear_screen() {
     }
 }
 
-fn change_exercise_status(path: &str, exercise: &str) {
-    let toml_str: String = fs::read_to_string(path).expect("Fehler beim lesen!");
+fn change_exercise_status(exercise: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut status: bool = true;
@@ -38,22 +38,23 @@ fn change_exercise_status(path: &str, exercise: &str) {
 
     doc["exercises"][exercise]["profiles"]["normal"] = value(!status);
 
-    fs::write(path, doc.to_string()).expect("Fehler beim Schreiben!");
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
-fn add_exercise(path: &str, exercise: &str) {
-    let toml_str: String = fs::read_to_string(path).expect("Fehler beim lesen!");
+fn add_exercise(exercise: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    //TODO auch die config verändern
     
     doc[exercise]["reps"] = value(0);
     doc[exercise]["amount"] = value(0);
     doc[exercise]["max"] = value(0);
     
-    fs::write(path, doc.to_string()).expect("Fehler beim Schreiben!");
+    fs::write(PATH_TO_DATA, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
-fn add_reps(path: &str, exercise: &str, reps: i32) {
-    let toml_str: String = fs::read_to_string(path).expect("Fehler beim lesen!");
+fn add_reps(exercise: &str, reps: i32) {
+    let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     if let Some(exercise_value) = doc.get(exercise) {
@@ -83,13 +84,13 @@ fn add_reps(path: &str, exercise: &str, reps: i32) {
             doc[exercise]["amount"] = value(amount);
             doc[exercise]["reps"] = value(all_reps);
             
-            fs::write(path, doc.to_string()).expect("Fehler beim Schreiben!");
+            fs::write(PATH_TO_DATA, doc.to_string()).expect("Fehler beim Schreiben!");
         }
     }
 }
 
-fn change_interval(path: &str, floor: SharedString, ceil: SharedString) -> i32 {
-    let toml_str: String = fs::read_to_string(path).expect("Fehler beim lesen!");
+fn change_interval(floor: SharedString, ceil: SharedString) -> i32 {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut problem_number: i32 = 0;
@@ -104,7 +105,7 @@ fn change_interval(path: &str, floor: SharedString, ceil: SharedString) -> i32 {
     } else {problem_number += 2}
 
     if problem_number == 0 {
-        fs::write(path, doc.to_string()).expect("Fehler beim Schreiben!");
+        fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
     }
     problem_number    
 }
@@ -133,7 +134,7 @@ fn get_exercises() -> Vec<String> {
     exercises
 }
 
-fn start_timer(path: &str) {
+fn start_timer() {
     let interval: (i64, i64) = get_interval();
 
     let time: f64 = rand::random_range(interval.0..interval.1) as f64;
@@ -178,18 +179,22 @@ fn main() {
     // false => time-loop aktiv
     let mut start_button_status: bool = true;
 
-    //REMINDER könnte alles in ein if let Some(handle)
     let is_running = Rc::new(RefCell::new(true));
     let is_running_clone = is_running.clone();
     let start_button_status = Rc::new(RefCell::new(true));
     let start_button_status_clone = start_button_status.clone();
+
+    let ui_handle_save_reps = ui_handle.clone();
+
+    let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
+    let chosen_exercise_rep_clone = chosen_exercise.clone();
 
 
     ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
 
         if *start_button_status_clone.borrow() == true {
 
-            let problem_number: i32 = change_interval(PATH_TO_CONFIG, floor, ceil);
+            let problem_number: i32 = change_interval(floor, ceil);
 
             match problem_number {
                 0 => if let Some(handle) = ui_handle.upgrade() {
@@ -198,7 +203,8 @@ fn main() {
 
                         let interval: (i64, i64) = get_interval();
                         let time: f64 = rand::random_range(interval.0..interval.1) as f64;
-                        let chosen_exercise: String = pick_random_exercise(get_exercises());
+                        *chosen_exercise.borrow_mut() = pick_random_exercise(get_exercises());
+                        let chosen_exercise_clone = chosen_exercise.clone();
                         let start_time = Instant::now();
                         
                         let timer = Rc::new(Timer::default());
@@ -213,10 +219,12 @@ fn main() {
 
                             if duration >= time {
                                 timer_clone.stop();
-                                println!("{}", chosen_exercise);
+                                println!("{}", *chosen_exercise_clone.borrow());
                                 *start_button_status_deep.borrow_mut() = true;
                                 if let Some(handle) = ui_handle_deep.upgrade() {
                                     handle.set_start_button_status(true);
+                                    handle.set_chosen_exercise(chosen_exercise_clone.borrow().as_str().into());
+                                    handle.set_current_view(CurrentView::RepInput);
                                 }
                             } else if !*is_running_deep.borrow() {
                                 timer_clone.stop();
@@ -227,10 +235,10 @@ fn main() {
                             } else {
                                 clear_screen();
                                 println!("{}", duration.round());
+                                if let Some(handle) = ui_handle_deep.upgrade() {
+                                    handle.set_passed_time(duration as i32);
+                                }
                             }
-                            //TODO während timer durchlauf auch zeit in window anzeigen
-                            //TODO widgets auf invisible stellen
-                            //TODO in funktion für erledigte reps wieder auf visible
                         });
                     },
                 1 => if let Some(handle) = ui_handle.upgrade() {
@@ -256,11 +264,18 @@ fn main() {
             }
         }
     });
+
+    ui.on_save_reps(move |reps: slint::SharedString| {
+        if let Some(handle) = ui_handle_save_reps.upgrade() {
+            handle.set_current_view(CurrentView::BasicButton);
+        }
+        add_reps(chosen_exercise_rep_clone.borrow().as_str(), reps.parse::<i32>().unwrap());
+    });
     ui.run().unwrap();
     
 }
 
 //TODO profiles
-//TODO anzeige welche aufgabe
-//TODO eingabe für die wiederholungen mit button zum abschicken
 //TODO Menü mit knopf für +Übung, -Übung, welche übungen an sind, andere optionen
+
+//REMINDER rotes flickern ist obsolet
