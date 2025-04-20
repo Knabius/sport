@@ -1,6 +1,9 @@
+import { TabWidget, VerticalBox, HorizontalBox, Switch } from "std-widgets.slint";
+
 enum CurrentView {
     BasicButton,
-    RepInput
+    RepInput,
+    Settings
 }
 
 component StartButton inherits Rectangle {
@@ -171,24 +174,110 @@ component BasicButton {
     }
 }
 
-export component MainWindow inherits Window {
-    in-out property <CurrentView> current_view: CurrentView.BasicButton;
+component SettingsButton {
+    callback open_settings();
 
+    Rectangle {
+        border-radius: 10px;
+        width: 50px;
+        height: 50px;
+        x: -595px;
+        y: -395px;
+        border-width: 2px;
+        border-color: Colors.black;
+        
+        Image {
+            width: parent.width;
+            height: parent.height;
+            source: @image-url("C:/A/Coden/Rust/sport/icon_menu.png");
+        }
+
+        TouchArea {
+            clicked => {
+                open_settings();
+            }
+        }
+    }
+}
+
+component Settings {
+    callback changed_general(bool);
+
+    in property <bool> setting_general_doubles;
+
+    width: 600px;
+    height: 400px;
+    TabWidget {
+        Tab {
+            title: "General";
+            Rectangle {
+                VerticalBox {
+                    alignment: start;
+                    Rectangle {
+                        width: 200px;
+                        border-width: 1.5px;
+                        border-color: Colors.black;
+                        HorizontalBox {
+                            Text {
+                                text: "Doubles";
+                                font-size: 16px;
+                            }
+
+                            doubles := Switch {
+                                checked: setting_general_doubles;
+                                toggled => {
+                                    changed_general(doubles.checked);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Tab {
+            title: "Exercises";
+            Rectangle {
+
+            }
+        }
+        Tab {
+            title: "Status";
+            Rectangle {
+
+            }
+        }
+        Tab {
+            title: "Profiles";
+            Rectangle {
+
+            }
+        }
+    }
+}
+
+export component MainWindow inherits Window {
     callback start_pressed(string, string);
     callback save_reps(string);
-
+    callback changed_general_settings(bool);
+    
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
     in-out property <int> initial_floor_value;
     in-out property <bool> ceil_input_invalid: false;
     in-out property <int> initial_ceil_value;
-
+    
     //Start Button
     in-out property <bool> start_button_status: true;
     in-out property <int> passed_time: 0;
-
+    
     //Exercise
     in property <string> chosen_exercise: "";
+
+    //View
+    in-out property <CurrentView> current_view: CurrentView.BasicButton;
+
+    //Settings
+    in-out property <bool> setting_general_doubles: true;
 
     width: 1200px;
     height: 800px;
@@ -210,6 +299,21 @@ export component MainWindow inherits Window {
         start_pressed(floor, ceil) => {
             start_pressed(floor, ceil);
             passed_time = 0;
+        }
+    }
+    
+    SettingsButton {
+        open_settings => {
+            current_view = CurrentView.Settings;
+            //TODO beim zumachen 
+        }
+    }
+
+    Settings {
+        visible: current_view == CurrentView.Settings;
+        setting_general_doubles: setting_general_doubles;
+        changed_general(doubles) => {
+            changed_general_settings(doubles);
         }
     }
 }
