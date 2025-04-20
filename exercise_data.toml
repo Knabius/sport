@@ -1,7 +1,7 @@
 [Pullup]
-reps = 11499
-amount = 61
-max = 9999
+reps = 1500
+amount = 60
+max = 30
 
 [Pushup]
 reps = 2300

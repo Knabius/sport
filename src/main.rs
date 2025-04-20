@@ -89,7 +89,7 @@ fn add_reps(exercise: &str, reps: i32) {
     }
 }
 
-fn change_interval(floor: SharedString, ceil: SharedString) -> i32 {
+fn change_interval(floor: SharedString, ceil: SharedString) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
@@ -99,15 +99,12 @@ fn change_interval(floor: SharedString, ceil: SharedString) -> i32 {
     let ceil_value: &str   = ceil.as_str();
     if let Ok(floor) = floor_value.parse::<i64>() {
         doc["floor"] = value(floor);
-    } else {problem_number += 1}
+    }
     if let Ok(ceil) = ceil_value.parse::<i64>() {
         doc["ceil"] = value(ceil);
-    } else {problem_number += 2}
-
-    if problem_number == 0 {
-        fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
     }
-    problem_number    
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
 fn pick_random_exercise(exercises: Vec<String>) -> String {
@@ -166,6 +163,15 @@ fn get_interval() -> (i64, i64) {
     (10,20)
 }
 
+fn set_last_exercise(exercise: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    doc["last_exercise"] = value(exercise);
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
 fn main() {
     let ui = MainWindow::new().unwrap();
     let ui_handle = ui.as_weak();
@@ -194,67 +200,52 @@ fn main() {
 
         if *start_button_status_clone.borrow() == true {
 
-            let problem_number: i32 = change_interval(floor, ceil);
+            change_interval(floor, ceil);
 
-            match problem_number {
-                0 => if let Some(handle) = ui_handle.upgrade() {
-                        *start_button_status_clone.borrow_mut() = false;
-                        handle.set_start_button_status(false);
+            if let Some(handle) = ui_handle.upgrade() {
+                *start_button_status_clone.borrow_mut() = false;
+                handle.set_start_button_status(false);
 
-                        let interval: (i64, i64) = get_interval();
-                        let time: f64 = rand::random_range(interval.0..interval.1) as f64;
-                        *chosen_exercise.borrow_mut() = pick_random_exercise(get_exercises());
-                        let chosen_exercise_clone = chosen_exercise.clone();
-                        let start_time = Instant::now();
-                        
-                        let timer = Rc::new(Timer::default());
-                        let timer_clone = timer.clone();
-                        *is_running_clone.borrow_mut() = true;
-                        let is_running_deep = is_running_clone.clone();
-                        let start_button_status_deep = start_button_status_clone.clone();
-                        let ui_handle_deep = ui_handle.clone();
+                let interval: (i64, i64) = get_interval();
+                let time: f64 = rand::random_range(interval.0..interval.1) as f64;
+                *chosen_exercise.borrow_mut() = pick_random_exercise(get_exercises());
+                let chosen_exercise_clone = chosen_exercise.clone();
+                let start_time = Instant::now();
+                
+                let timer = Rc::new(Timer::default());
+                let timer_clone = timer.clone();
+                *is_running_clone.borrow_mut() = true;
+                let is_running_deep = is_running_clone.clone();
+                let start_button_status_deep = start_button_status_clone.clone();
+                let ui_handle_deep = ui_handle.clone();
 
-                        timer.start(TimerMode::Repeated, std::time::Duration::from_millis(500), move || {
-                            let duration: f64 = start_time.elapsed().as_secs_f64();
+                timer.start(TimerMode::Repeated, std::time::Duration::from_millis(500), move || {
+                    let duration: f64 = start_time.elapsed().as_secs_f64();
 
-                            if duration >= time {
-                                timer_clone.stop();
-                                println!("{}", *chosen_exercise_clone.borrow());
-                                *start_button_status_deep.borrow_mut() = true;
-                                if let Some(handle) = ui_handle_deep.upgrade() {
-                                    handle.set_start_button_status(true);
-                                    handle.set_chosen_exercise(chosen_exercise_clone.borrow().as_str().into());
-                                    handle.set_current_view(CurrentView::RepInput);
-                                }
-                            } else if !*is_running_deep.borrow() {
-                                timer_clone.stop();
-                                *start_button_status_deep.borrow_mut() = true;
-                                if let Some(handle) = ui_handle_deep.upgrade() {
-                                    handle.set_start_button_status(true);
-                                }
-                            } else {
-                                clear_screen();
-                                println!("{}", duration.round());
-                                if let Some(handle) = ui_handle_deep.upgrade() {
-                                    handle.set_passed_time(duration as i32);
-                                }
-                            }
-                        });
-                    },
-                1 => if let Some(handle) = ui_handle.upgrade() {
-                        //handle.set_floor_input_invalid(true);
-                        //handle.invoke_text_input_flash();
-                    },
-                2 => if let Some(handle) = ui_handle.upgrade() {
-                        //handle.set_ceil_input_invalid(true);
-                        //handle.invoke_text_input_flash();
-                    },
-                3 => if let Some(handle) = ui_handle.upgrade() {
-                        //handle.set_floor_input_invalid(true);
-                        //handle.set_ceil_input_invalid(true);
-                        //handle.invoke_text_input_flash();
-                    },
-                _ => {},
+                    if duration >= time {
+                        timer_clone.stop();
+                        println!("{}", *chosen_exercise_clone.borrow());
+                        *start_button_status_deep.borrow_mut() = true;
+                        if let Some(handle) = ui_handle_deep.upgrade() {
+                            handle.set_start_button_status(true);
+                            handle.set_chosen_exercise(chosen_exercise_clone.borrow().as_str().into());
+                            handle.set_current_view(CurrentView::RepInput);
+                        }
+                        set_last_exercise(chosen_exercise_clone.borrow().as_str());
+                    } else if !*is_running_deep.borrow() {
+                        timer_clone.stop();
+                        *start_button_status_deep.borrow_mut() = true;
+                        if let Some(handle) = ui_handle_deep.upgrade() {
+                            handle.set_start_button_status(true);
+                        }
+                    } else {
+                        clear_screen();
+                        println!("{}", duration.round());
+                        if let Some(handle) = ui_handle_deep.upgrade() {
+                            handle.set_passed_time(duration as i32);
+                        }
+                    }
+                });
             }
         } else if *start_button_status_clone.borrow() == false {
             *is_running_clone.borrow_mut() = false;
