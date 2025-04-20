@@ -214,7 +214,7 @@ fn main() {
                         let start_button_status_deep = start_button_status_clone.clone();
                         let ui_handle_deep = ui_handle.clone();
 
-                        timer.start(TimerMode::Repeated, std::time::Duration::from_secs(1), move || {
+                        timer.start(TimerMode::Repeated, std::time::Duration::from_millis(500), move || {
                             let duration: f64 = start_time.elapsed().as_secs_f64();
 
                             if duration >= time {
@@ -242,17 +242,17 @@ fn main() {
                         });
                     },
                 1 => if let Some(handle) = ui_handle.upgrade() {
-                        handle.set_floor_input_invalid(true);
-                        handle.invoke_text_input_flash();
+                        //handle.set_floor_input_invalid(true);
+                        //handle.invoke_text_input_flash();
                     },
                 2 => if let Some(handle) = ui_handle.upgrade() {
-                        handle.set_ceil_input_invalid(true);
-                        handle.invoke_text_input_flash();
+                        //handle.set_ceil_input_invalid(true);
+                        //handle.invoke_text_input_flash();
                     },
                 3 => if let Some(handle) = ui_handle.upgrade() {
-                        handle.set_floor_input_invalid(true);
-                        handle.set_ceil_input_invalid(true);
-                        handle.invoke_text_input_flash();
+                        //handle.set_floor_input_invalid(true);
+                        //handle.set_ceil_input_invalid(true);
+                        //handle.invoke_text_input_flash();
                     },
                 _ => {},
             }
