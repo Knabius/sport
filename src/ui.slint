@@ -303,9 +303,14 @@ export component MainWindow inherits Window {
     }
     
     SettingsButton {
+        property <CurrentView> last_view;
         open_settings => {
-            current_view = CurrentView.Settings;
-            //TODO beim zumachen 
+            if current_view == CurrentView.Settings {
+                current_view = last_view;
+            } else {
+                last_view = current_view;
+                current_view = CurrentView.Settings;
+            }
         }
     }
 
