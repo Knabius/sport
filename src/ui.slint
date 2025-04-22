@@ -1,4 +1,4 @@
-import { TabWidget, VerticalBox, HorizontalBox, Switch, ListView } from "std-widgets.slint";
+import { TabWidget, VerticalBox, HorizontalBox, Switch, ListView, Button, TextEdit, ComboBox } from "std-widgets.slint";
 
 enum CurrentView {
     BasicButton,
@@ -208,9 +208,12 @@ component SettingsButton {
 component Settings {
     callback changed_general(bool);
     callback changed_activation(string);
+    callback add_exercise(string, int);
 
     in property <bool> setting_general_doubles;
     in-out property <[Exercise]> exercises;
+    in-out property <bool> add_exercise_vis: true;
+    in-out property <bool> remove_exercise_vis: false;
 
     width: 600px;
     height: 400px;
@@ -219,46 +222,94 @@ component Settings {
         border-width: 1px;
         border-color: #6b6868;
         TabWidget {
+            //Tab {
+            //    title: "General";
+            //    Rectangle {
+            //        VerticalBox {
+            //            alignment: start;
+            //            //REMINDER statt doppel rectangle vllt vertbox mit spacing
+            //            //TODO auf knopfduck schieben sich die Switches zusammen und danach spawn ein knopf
+            //            Rectangle {
+            //                width: 205px;
+            //                height: 40px;
+            //                border-width: 5px;
+            //                padding: 10px;
+            //                
+            //                Rectangle {
+            //                    width: 200px; 
+            //                    height: 35px;
+            //                    border-width: 1.5px;
+            //                    border-radius: 2px;
+            //                    border-color: #6b6868;
+            //                    HorizontalBox {
+            //                        Text {
+            //                            text: "Doubles";
+            //                            font-size: 16px;
+            //                        }
+            //
+            //                        doubles := Switch {
+            //                            checked: setting_general_doubles;
+            //                            toggled => {
+            //                                changed_general(doubles.checked);
+            //                            }
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
             Tab {
-                title: "General";
-                Rectangle {
-                    VerticalBox {
-                        alignment: start;
-                        //REMINDER statt doppel rectangle vllt vertbox mit spacing
+                title: "Exercises";
+                VerticalBox {
+                    HorizontalBox {
+                        alignment: center;
+                        spacing: 15px;
                         Rectangle {
-                            width: 205px;
-                            height: 40px;
-                            border-width: 5px;
-                            padding: 10px;
+                            height: 30px;
+                            width: 30px;
+                            background: add_exercise_vis ? #B71C1C : #026F8F;
+                            border-radius: 2px;
                             
-                            Rectangle {
-                                width: 200px; 
-                                height: 35px;
-                                border-width: 1.5px;
-                                border-radius: 2px;
-                                border-color: #6b6868;
-                                HorizontalBox {
-                                    Text {
-                                        text: "Doubles";
-                                        font-size: 16px;
-                                    }
-        
-                                    doubles := Switch {
-                                        checked: setting_general_doubles;
-                                        toggled => {
-                                            changed_general(doubles.checked);
-                                        }
-                                    }
+                            Image {
+                                width: parent.width*0.6;
+                                height: parent.height*0.6;
+                                source: @image-url("resources/icon_plus.png");
+                            }
+
+                            TouchArea {
+                                enabled: !remove_exercise_vis;
+                                clicked => {
+                                    add_exercise_vis = !add_exercise_vis;
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            height: 30px;
+                            width: 30px;
+                            background: remove_exercise_vis ? #B71C1C : #026F8F;
+                            border-radius: 2px;
+
+                            Image {
+                                width: parent.width*0.6;
+                                height: parent.height*0.5;
+                                source: @image-url("resources/icon_minus.png");
+                            }
+
+                            TouchArea {
+                                enabled: !add_exercise_vis;
+                                clicked => {
+                                    remove_exercise_vis = !remove_exercise_vis;
                                 }
                             }
                         }
                     }
-                }
-            }
-            Tab {
-                title: "Exercises";
-                VerticalBox {
+                    
+                    //FIXME Layout fixen
+
                     ListView {
+                        visible: !add_exercise_vis && !remove_exercise_vis;
                         for data[i] in exercises:
                         Rectangle {
                             width: 205px;
@@ -290,6 +341,75 @@ component Settings {
                             }
                         }
                     }
+
+                    VerticalBox {
+                        height: add_exercise_vis ? 0px : parent.height;
+                        alignment: center;
+                        HorizontalBox {
+                            alignment: center;
+                            Rectangle {
+                                visible: add_exercise_vis;
+                                background: #4b4949;
+                                width: 300px;
+                                height: 200px;
+                                
+                                VerticalBox {
+                                    spacing: 0px;
+                                    alignment: center;
+
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        add_exercise_name := TextInput {
+                                            color: Colors.white;
+                                            font-size: 20px;
+                                            text: "Name";
+                                            input-type: text;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        combo := ComboBox {
+                                            height: 35px;
+                                            width: 80px;
+                                            model: ["Reps", "Time"];
+                                            current-value: "Reps";
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        Rectangle {
+                                            width: 80px;
+                                            height: 40px;
+                                            background: #026F8F;
+                                            border-radius: 10px;
+                                            border-width: 1px;
+                                            border-color: Colors.black;
+                                
+                                            Text {
+                                                text: "Save";
+                                                font-size: 20px;
+                                            }
+                            
+                                            TouchArea {
+                                                clicked => {
+                                                    add_exercise(add_exercise_name.text, combo.current-index);
+                                                    add_exercise_vis = !add_exercise_vis;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
                 }
             }
             Tab {
@@ -375,4 +495,8 @@ export component MainWindow inherits Window {
             changed_activation_settings(name);
         }
     }
+
+    //AddExercise {}
+
+    //RemoveExercise {}
 }

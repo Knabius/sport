@@ -9,7 +9,7 @@ last_exercise = "Planche"
 type = "reps"
 
 [exercises.Pullup.profiles]
-normal = true
+normal = false
 
 [exercises.Pushup]
 type = "reps"
