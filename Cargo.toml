@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 rand = "0.9.0"
+rodio = "0.20.1"
 slint = "1.10.0"
 toml = "0.8.20"
 toml_edit = "0.22.24"

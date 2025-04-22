@@ -1,5 +1,5 @@
-floor = 600
-ceil = 1800
+floor = 2
+ceil = 4
 doubles = true
 last_exercise = "Planche"
 

@@ -1,18 +1,20 @@
 use toml_edit::{DocumentMut, Item, Table, value};
-use std::fs;
+use std::{cell::Ref, fs};
 use std::time::Instant;
 use std::process::Command;
 use slint::{SharedString, Timer, TimerMode, ToSharedString};
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::fs::File;
+use std::io::BufReader;
+use rodio::{Decoder, OutputStream, Sink, Source};
 mod funcs;
 
 const PATH_TO_CONFIG: &str = "config.toml";
 const PATH_TO_DATA: &str = "exercise_data.toml";
+const VOLUME: f32 = 0.3;
 
-slint::slint! {
-    export { MainWindow } from "src/ui.slint";
-}
+slint::slint! {export { MainWindow } from "src/ui.slint";}
 
 fn clear_screen() {
     if cfg!(target_os = "windows") {
@@ -213,8 +215,16 @@ fn get_exercise_settings() -> Vec<Exercise> {
 }
 
 fn main() {
+    //Slint
     let ui = MainWindow::new().unwrap();
     let ui_handle = ui.as_weak();
+
+    //Audio
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let sink = Rc::new(RefCell::new(Sink::try_new(&stream_handle).unwrap()));
+
+
+    //Initial Setup
     if let Some(handle) = ui_handle.upgrade() {
         let interval: (i64, i64) = get_interval();
         handle.set_initial_floor_value(interval.0 as i32);
@@ -236,7 +246,6 @@ fn main() {
 
     let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
     let chosen_exercise_rep_clone = chosen_exercise.clone();
-
 
     ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
 
@@ -261,6 +270,8 @@ fn main() {
                 let start_button_status_deep = start_button_status_clone.clone();
                 let ui_handle_deep = ui_handle.clone();
 
+                let sink = sink.clone();
+
                 timer.start(TimerMode::Repeated, std::time::Duration::from_millis(500), move || {
                     let duration: f64 = start_time.elapsed().as_secs_f64();
 
@@ -274,12 +285,16 @@ fn main() {
                             handle.set_current_view(CurrentView::RepInput);
                         }
                         set_last_exercise(chosen_exercise_clone.borrow().as_str());
+                        let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("src/resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
+                        sink.borrow_mut().append(boing);
+
                     } else if !*is_running_deep.borrow() {
                         timer_clone.stop();
                         *start_button_status_deep.borrow_mut() = true;
                         if let Some(handle) = ui_handle_deep.upgrade() {
                             handle.set_start_button_status(true);
                         }
+
                     } else {
                         clear_screen();
                         println!("{}", duration.round());
@@ -310,8 +325,8 @@ fn main() {
     });
 
     ui.run().unwrap();
-    
 }
 
 //TODO profiles
 //TODO Menü mit knopf für +Übung, -Übung, welche übungen an sind, andere optionen
+//TODO während des timer laufens auch extra reps eintragen können

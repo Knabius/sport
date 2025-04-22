@@ -14,6 +14,6 @@ amount = 8
 max = 40
 
 [Planche]
-reps = 2
-amount = 2
+reps = 3
+amount = 3
 max = 1
