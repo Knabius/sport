@@ -1,5 +1,5 @@
-floor = 2
-ceil = 4
+floor = 600
+ceil = 1800
 doubles = true
 last_exercise = "Planche"
 
@@ -9,7 +9,7 @@ last_exercise = "Planche"
 type = "reps"
 
 [exercises.Pullup.profiles]
-normal = false
+normal = true
 
 [exercises.Pushup]
 type = "reps"

@@ -207,60 +207,96 @@ component SettingsButton {
 
 component Settings {
     callback changed_general(bool);
+    callback changed_activation(string);
 
     in property <bool> setting_general_doubles;
-    in property <[Exercise]> exercises;
+    in-out property <[Exercise]> exercises;
 
     width: 600px;
     height: 400px;
-    TabWidget {
-        Tab {
-            title: "General";
-            Rectangle {
-                VerticalBox {
-                    alignment: start;
-                    Rectangle {
-                        width: 200px;
-                        border-width: 1.5px;
-                        border-color: Colors.black;
-                        HorizontalBox {
-                            Text {
-                                text: "Doubles";
-                                font-size: 16px;
-                            }
-
-                            doubles := Switch {
-                                checked: setting_general_doubles;
-                                toggled => {
-                                    changed_general(doubles.checked);
+    Rectangle {
+        border-radius: 2px;
+        border-width: 1px;
+        border-color: #6b6868;
+        TabWidget {
+            Tab {
+                title: "General";
+                Rectangle {
+                    VerticalBox {
+                        alignment: start;
+                        //REMINDER statt doppel rectangle vllt vertbox mit spacing
+                        Rectangle {
+                            width: 205px;
+                            height: 40px;
+                            border-width: 5px;
+                            padding: 10px;
+                            
+                            Rectangle {
+                                width: 200px; 
+                                height: 35px;
+                                border-width: 1.5px;
+                                border-radius: 2px;
+                                border-color: #6b6868;
+                                HorizontalBox {
+                                    Text {
+                                        text: "Doubles";
+                                        font-size: 16px;
+                                    }
+        
+                                    doubles := Switch {
+                                        checked: setting_general_doubles;
+                                        toggled => {
+                                            changed_general(doubles.checked);
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
-        Tab {
-            title: "Exercises";
-            VerticalBox {
-                ListView {
-                    for data in exercises : Rectangle {
-                        HorizontalBox {
-                            Text {
-                                text: data.name;
-                            }
-                            Switch {
-                                checked: data.activation_status;
+            Tab {
+                title: "Exercises";
+                VerticalBox {
+                    ListView {
+                        for data[i] in exercises:
+                        Rectangle {
+                            width: 205px;
+                            height: 40px;
+                            border-width: 5px;
+                            padding: 10px;
+                            
+                            Rectangle {
+                                width: 200px; 
+                                height: 35px;
+                                border-width: 1.5px;
+                                border-radius: 2px;
+                                border-color: #6b6868;
+            
+                                HorizontalBox {
+                                    Text {
+                                        text: data.name;
+                                        font-size: 16px;
+                                    }
+        
+                                    Switch {
+                                        checked: data.activation_status;
+                                        toggled => {
+                                            exercises[i].activation_status = !exercises[i].activation_status;
+                                            changed_activation(exercises[i].name);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-        Tab {
-            title: "Profiles";
-            Rectangle {
-
+            Tab {
+                title: "Profiles";
+                Rectangle {
+    
+                }
             }
         }
     }
@@ -270,6 +306,7 @@ export component MainWindow inherits Window {
     callback start_pressed(string, string);
     callback save_reps(string);
     callback changed_general_settings(bool);
+    callback changed_activation_settings(string);
     
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
@@ -333,6 +370,9 @@ export component MainWindow inherits Window {
         exercises: exercises;
         changed_general(doubles) => {
             changed_general_settings(doubles);
+        }
+        changed_activation(name) => {
+            changed_activation_settings(name);
         }
     }
 }

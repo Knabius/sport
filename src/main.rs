@@ -214,6 +214,16 @@ fn get_exercise_settings() -> Vec<Exercise> {
     items
 }
 
+fn set_exercise_activation(exercise_name: slint::SharedString) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    let val: bool = doc["exercises"][exercise_name.as_str()]["profiles"]["normal"].as_bool().unwrap();
+    doc["exercises"][exercise_name.as_str()]["profiles"]["normal"] = value(!val);
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
 fn main() {
     //Slint
     let ui = MainWindow::new().unwrap();
@@ -277,7 +287,6 @@ fn main() {
 
                     if duration >= time {
                         timer_clone.stop();
-                        println!("{}", *chosen_exercise_clone.borrow());
                         *start_button_status_deep.borrow_mut() = true;
                         if let Some(handle) = ui_handle_deep.upgrade() {
                             handle.set_start_button_status(true);
@@ -297,7 +306,6 @@ fn main() {
 
                     } else {
                         clear_screen();
-                        println!("{}", duration.round());
                         if let Some(handle) = ui_handle_deep.upgrade() {
                             handle.set_passed_time(duration as i32);
                         }
@@ -324,9 +332,16 @@ fn main() {
         set_general_settings(setting_doubles);
     });
 
+    ui.on_changed_activation_settings(move |name: slint::SharedString| {
+        set_exercise_activation(name);
+    });
+
     ui.run().unwrap();
 }
 
+//TODO doubles noch implementieren
 //TODO profiles
-//TODO Menü mit knopf für +Übung, -Übung, welche übungen an sind, andere optionen
+//TODO Menü mit knopf für +Übung, -Übung, 
 //TODO während des timer laufens auch extra reps eintragen können
+//TODO bei reps und main button enter nutzen können+
+//TODO falls alle übungen aus nicht angehen evtl meldung
