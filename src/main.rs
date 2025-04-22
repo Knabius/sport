@@ -172,6 +172,23 @@ fn set_last_exercise(exercise: &str) {
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
+fn get_general_settings() -> bool {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    let setting_doubles: bool = doc["doubles"].as_bool().unwrap();
+    setting_doubles
+}
+
+fn set_general_settings(setting_doubles: bool) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    doc["doubles"] = value(setting_doubles);
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
 fn main() {
     let ui = MainWindow::new().unwrap();
     let ui_handle = ui.as_weak();
@@ -179,6 +196,7 @@ fn main() {
         let interval: (i64, i64) = get_interval();
         handle.set_initial_floor_value(interval.0 as i32);
         handle.set_initial_ceil_value(interval.1 as i32);
+        handle.set_setting_general_doubles(get_general_settings());
     }
 
     // true => time-loop inaktiv
@@ -262,6 +280,11 @@ fn main() {
         }
         add_reps(chosen_exercise_rep_clone.borrow().as_str(), reps.parse::<i32>().unwrap());
     });
+
+    ui.on_changed_general_settings(move |setting_doubles: bool| {
+        set_general_settings(setting_doubles);
+    });
+
     ui.run().unwrap();
     
 }
