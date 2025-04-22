@@ -12,3 +12,8 @@ max = 85
 reps = 200
 amount = 7
 max = 40
+
+[Planche]
+reps = 0
+amount = 0
+max = 0

@@ -268,5 +268,3 @@ fn main() {
 
 //TODO profiles
 //TODO Menü mit knopf für +Übung, -Übung, welche übungen an sind, andere optionen
-
-//REMINDER rotes flickern ist obsolet
