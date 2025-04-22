@@ -2,7 +2,7 @@ use toml_edit::{DocumentMut, Item, Table, value};
 use std::fs;
 use std::time::Instant;
 use std::process::Command;
-use slint::{SharedString, Timer, TimerMode};
+use slint::{SharedString, Timer, TimerMode, ToSharedString};
 use std::rc::Rc;
 use std::cell::RefCell;
 mod funcs;
@@ -189,6 +189,29 @@ fn set_general_settings(setting_doubles: bool) {
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
+fn get_exercise_settings() -> Vec<Exercise> {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    let mut exercises: Vec<String>  = Vec::new();
+    let mut activations: Vec<bool> = Vec::new();
+
+    if let Some(exercises_table) = doc.get("exercises").and_then(|t| t.as_table()) {
+        for (exercise_name, exercise_data) in exercises_table.iter() {
+            if let Some(status) = exercise_data.get("profiles").unwrap().get("normal").unwrap().as_bool() {
+                exercises.push(String::from(exercise_name));
+                activations.push(status);
+            }
+        }
+    }
+
+    let items: Vec<Exercise> = exercises.into_iter().zip(activations.into_iter()).map(|(exercise, activation)| Exercise {
+        name: exercise.to_shared_string(),
+        activation_status: activation,}).collect();
+
+    items
+}
+
 fn main() {
     let ui = MainWindow::new().unwrap();
     let ui_handle = ui.as_weak();
@@ -197,6 +220,7 @@ fn main() {
         handle.set_initial_floor_value(interval.0 as i32);
         handle.set_initial_ceil_value(interval.1 as i32);
         handle.set_setting_general_doubles(get_general_settings());
+        handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(get_exercise_settings())));
     }
 
     // true => time-loop inaktiv

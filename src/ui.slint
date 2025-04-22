@@ -1,9 +1,14 @@
-import { TabWidget, VerticalBox, HorizontalBox, Switch } from "std-widgets.slint";
+import { TabWidget, VerticalBox, HorizontalBox, Switch, ListView } from "std-widgets.slint";
 
 enum CurrentView {
     BasicButton,
     RepInput,
     Settings
+}
+
+export struct Exercise {
+    name: string,
+    activation_status: bool,
 }
 
 component StartButton inherits Rectangle {
@@ -189,7 +194,7 @@ component SettingsButton {
         Image {
             width: parent.width;
             height: parent.height;
-            source: @image-url("C:/A/Coden/Rust/sport/icon_menu.png");
+            source: @image-url("resources/icon_menu.png");
         }
 
         TouchArea {
@@ -204,6 +209,7 @@ component Settings {
     callback changed_general(bool);
 
     in property <bool> setting_general_doubles;
+    in property <[Exercise]> exercises;
 
     width: 600px;
     height: 400px;
@@ -236,14 +242,19 @@ component Settings {
         }
         Tab {
             title: "Exercises";
-            Rectangle {
-
-            }
-        }
-        Tab {
-            title: "Status";
-            Rectangle {
-
+            VerticalBox {
+                ListView {
+                    for data in exercises : Rectangle {
+                        HorizontalBox {
+                            Text {
+                                text: data.name;
+                            }
+                            Switch {
+                                checked: data.activation_status;
+                            }
+                        }
+                    }
+                }
             }
         }
         Tab {
@@ -278,6 +289,8 @@ export component MainWindow inherits Window {
 
     //Settings
     in-out property <bool> setting_general_doubles: true;
+    in-out property <[Exercise]> exercises;
+
 
     width: 1200px;
     height: 800px;
@@ -317,6 +330,7 @@ export component MainWindow inherits Window {
     Settings {
         visible: current_view == CurrentView.Settings;
         setting_general_doubles: setting_general_doubles;
+        exercises: exercises;
         changed_general(doubles) => {
             changed_general_settings(doubles);
         }
