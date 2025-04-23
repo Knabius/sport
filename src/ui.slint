@@ -208,11 +208,11 @@ component SettingsButton {
 component Settings {
     callback changed_general(bool);
     callback changed_activation(string);
-    callback add_exercise(string, int);
+    callback add_exercise(string, string);
 
     in property <bool> setting_general_doubles;
     in-out property <[Exercise]> exercises;
-    in-out property <bool> add_exercise_vis: true;
+    in-out property <bool> add_exercise_vis: false;
     in-out property <bool> remove_exercise_vis: false;
 
     width: 600px;
@@ -305,11 +305,9 @@ component Settings {
                             }
                         }
                     }
-                    
-                    //FIXME Layout fixen
-
+                                        
+                    if !add_exercise_vis && !remove_exercise_vis :
                     ListView {
-                        visible: !add_exercise_vis && !remove_exercise_vis;
                         for data[i] in exercises:
                         Rectangle {
                             width: 205px;
@@ -342,13 +340,13 @@ component Settings {
                         }
                     }
 
+                    if add_exercise_vis :
                     VerticalBox {
                         height: add_exercise_vis ? 0px : parent.height;
                         alignment: center;
                         HorizontalBox {
                             alignment: center;
                             Rectangle {
-                                visible: add_exercise_vis;
                                 background: #4b4949;
                                 width: 300px;
                                 height: 200px;
@@ -378,6 +376,7 @@ component Settings {
                                             width: 80px;
                                             model: ["Reps", "Time"];
                                             current-value: "Reps";
+                                            current-index: 0;
                                         }
                                     }
 
@@ -399,7 +398,7 @@ component Settings {
                             
                                             TouchArea {
                                                 clicked => {
-                                                    add_exercise(add_exercise_name.text, combo.current-index);
+                                                    add_exercise(add_exercise_name.text, combo.current-value);
                                                     add_exercise_vis = !add_exercise_vis;
                                                 }
                                             }
@@ -427,6 +426,7 @@ export component MainWindow inherits Window {
     callback save_reps(string);
     callback changed_general_settings(bool);
     callback changed_activation_settings(string);
+    callback add_exercise(string, string);
     
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
@@ -494,9 +494,8 @@ export component MainWindow inherits Window {
         changed_activation(name) => {
             changed_activation_settings(name);
         }
+        add_exercise(name, type) => {
+            add_exercise(name, type);
+        }
     }
-
-    //AddExercise {}
-
-    //RemoveExercise {}
 }
