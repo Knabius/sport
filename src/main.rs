@@ -17,12 +17,6 @@ const VOLUME: f32 = 0.3;
 
 slint::slint! {export { MainWindow } from "src/ui.slint";}
 
-fn clear_screen() {
-    if cfg!(target_os = "windows") {
-        Command::new("cmd").args(&["/C", "cls"]).status().unwrap();
-    }
-}
-
 fn change_exercise_status(exercise: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
@@ -133,11 +127,9 @@ fn pick_random_exercise(exercises: Vec<String>) -> String {
             exercises.remove(index);
         }
         let index: usize = rand::random_range(0..exercises.len());
-        println!("{}",exercises[index].clone());
         exercises[index].clone()
     } else {
         let index: usize = rand::random_range(0..exercises.len());
-        println!("{}", exercises[index].clone());
         exercises[index].clone()
     }
 }
@@ -355,7 +347,6 @@ fn main() {
                             }
 
                         } else {
-                            //clear_screen();
                             if let Some(handle) = ui_handle_deep.upgrade() {
                                 handle.set_passed_time(duration as i32);
                             }
@@ -401,7 +392,6 @@ fn main() {
         if let Some(handle) = ui_handle_remove_exercise.upgrade() {
             handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(get_exercise_settings())));
         }
-
     });
 
     ui.run().unwrap();

@@ -1,16 +1,19 @@
 import { TabWidget, VerticalBox, HorizontalBox, Switch, ListView, ComboBox } from "std-widgets.slint";
 
+//Enums
 enum CurrentView {
     BasicButton,
     RepInput,
     Settings
 }
 
+//Structs
 export struct Exercise {
     name: string,
     activation_status: bool,
 }
 
+//Widgets
 component StartButton inherits Rectangle {
     in-out property <bool> status;
     in-out property <int> time;
@@ -467,6 +470,7 @@ component Settings {
     }
 }
 
+//MainWidget
 export component MainWindow inherits Window {
     callback start_pressed(string, string);
     callback save_reps(string);
