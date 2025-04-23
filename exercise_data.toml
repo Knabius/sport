@@ -1,19 +1,44 @@
-[Pullup]
-reps = 0
-amount = 0
-max = 0
-
 [Pushup]
-reps = 20
-amount = 1
-max = 20
+Reps = 2529
+Amount = 67
+Max = 50
+
+[Lean]
+Reps = 190
+Amount = 190
+Max = 1
+
+[Abs]
+Reps = 207
+Amount = 14
+Max = 20
+
+[Lever]
+Reps = 59
+Amount = 59
+Max = 1
+
+[Pullup]
+Reps = 1246
+Amount = 52
+Max = 26
+
+[Sally]
+Time = 1392
+Amount = 7
+Max = 204
+
+[Swing]
+Reps = 87
+Amount = 67
+Max = 9
 
 [Planche]
-reps = 5
-amount = 5
-max = 1
+Reps = 28
+Amount = 28
+Max = 1
 
-[Planche-Pushup]
-reps = 5
-amount = 1
-max = 5
+[PlanchePushup]
+Reps = 5
+Amount = 1
+Max = 5

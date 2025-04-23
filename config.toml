@@ -8,3 +8,8 @@ Pullup = { type = "Reps", profiles = { normal = false } }
 Pushup = { type = "Reps", profiles = { normal = false } }
 Planche = { type = "Reps", profiles = { normal = true } }
 Planche-Pushup = { type = "Reps", profiles = { normal = true } }
+Lean = { type = "Reps", profiles = {normal = false }}
+Abs = { type = "Reps", profiles = {normal = false }}
+Lever = { type = "Reps", profiles = {normal = false }}
+Sally = { type = "Time", profiles = {normal = false }}
+Swing = { type = "Reps", profiles = {normal = false }}
