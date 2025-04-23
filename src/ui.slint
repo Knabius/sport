@@ -1,4 +1,4 @@
-import { TabWidget, VerticalBox, HorizontalBox, Switch, ListView, Button, TextEdit, ComboBox } from "std-widgets.slint";
+import { TabWidget, VerticalBox, HorizontalBox, Switch, ListView, ComboBox } from "std-widgets.slint";
 
 enum CurrentView {
     BasicButton,
@@ -80,6 +80,11 @@ component RepInput inherits Rectangle {
                     input-type: number;
                     horizontal-alignment: center;
                     vertical-alignment: center;
+
+                    accepted => {
+                        root.save_reps(reps.text);
+                        reps.text = "0";
+                    }
                 }
             }
         }
@@ -130,6 +135,7 @@ component BasicButton {
             HorizontalLayout {
                 alignment: center;
                 start_button := StartButton {
+                    
                     time: passed_time;
                     status: start_button_status;
                     button_pressed => {
@@ -155,6 +161,10 @@ component BasicButton {
                         text: initial_floor_value;
                         horizontal-alignment: center;
                         vertical-alignment: center;
+
+                        accepted => {
+                            root.start_pressed(floor_input.text, ceil_input.text);
+                        }
                     }
                 }
                 Rectangle {
@@ -172,6 +182,10 @@ component BasicButton {
                         text: initial_ceil_value;
                         horizontal-alignment: center;
                         vertical-alignment: center;
+
+                        accepted => {
+                            root.start_pressed(floor_input.text, ceil_input.text);
+                        }
                     }
                 }            
             }
@@ -209,6 +223,7 @@ component Settings {
     callback changed_general(bool);
     callback changed_activation(string);
     callback add_exercise(string, string);
+    callback remove_exercise(string);
 
     in property <bool> setting_general_doubles;
     in-out property <[Exercise]> exercises;
@@ -228,37 +243,37 @@ component Settings {
             //        VerticalBox {
             //            alignment: start;
             //            //REMINDER statt doppel rectangle vllt vertbox mit spacing
-            //            //TODO auf knopfduck schieben sich die Switches zusammen und danach spawn ein knopf
             //            Rectangle {
-            //                width: 205px;
-            //                height: 40px;
-            //                border-width: 5px;
-            //                padding: 10px;
-            //                
-            //                Rectangle {
-            //                    width: 200px; 
-            //                    height: 35px;
-            //                    border-width: 1.5px;
-            //                    border-radius: 2px;
-            //                    border-color: #6b6868;
-            //                    HorizontalBox {
-            //                        Text {
-            //                            text: "Doubles";
-            //                            font-size: 16px;
-            //                        }
-            //
-            //                        doubles := Switch {
-            //                            checked: setting_general_doubles;
-            //                            toggled => {
-            //                                changed_general(doubles.checked);
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-            //}
+                //                width: 205px;
+                //                height: 40px;
+                //                border-width: 5px;
+                //                padding: 10px;
+                //                
+                //                Rectangle {
+                    //                    width: 200px; 
+                    //                    height: 35px;
+                    //                    border-width: 1.5px;
+                    //                    border-radius: 2px;
+                    //                    border-color: #6b6868;
+                    //                    HorizontalBox {
+                        //                        Text {
+                            //                            text: "Doubles";
+                            //                            font-size: 16px;
+                            //                        }
+                            //
+                            //                        doubles := Switch {
+                                //                            checked: setting_general_doubles;
+                                //                            toggled => {
+                                    //                                changed_general(doubles.checked);
+                                    //                            }
+                                    //                        }
+                                    //                    }
+                                    //                }
+                                    //            }
+                                    //        }
+                                    //    }
+                                    //}
+                                    //            
             Tab {
                 title: "Exercises";
                 VerticalBox {
@@ -306,7 +321,7 @@ component Settings {
                         }
                     }
                                         
-                    if !add_exercise_vis && !remove_exercise_vis :
+                    if !add_exercise_vis:
                     ListView {
                         for data[i] in exercises:
                         Rectangle {
@@ -315,24 +330,50 @@ component Settings {
                             border-width: 5px;
                             padding: 10px;
                             
-                            Rectangle {
-                                width: 200px; 
-                                height: 35px;
-                                border-width: 1.5px;
-                                border-radius: 2px;
-                                border-color: #6b6868;
-            
-                                HorizontalBox {
-                                    Text {
-                                        text: data.name;
-                                        font-size: 16px;
+                            HorizontalBox {
+                                alignment: center;
+
+                                Rectangle {
+                                    width: remove_exercise_vis ? 160px : 200px;
+                                    height: 35px;
+                                    border-width: 1.5px;
+                                    border-radius: 2px;
+                                    border-color: #6b6868;
+                                    animate width {
+                                         easing: ease-in;
+                                         duration: 300ms;
                                     }
-        
-                                    Switch {
-                                        checked: data.activation_status;
-                                        toggled => {
-                                            exercises[i].activation_status = !exercises[i].activation_status;
-                                            changed_activation(exercises[i].name);
+                
+                                    HorizontalBox {
+                                        Text {
+                                            text: data.name;
+                                            font-size: 16px;
+                                        }
+            
+                                        Switch {
+                                            checked: data.activation_status;
+                                            toggled => {
+                                                exercises[i].activation_status = !exercises[i].activation_status;
+                                                changed_activation(exercises[i].name);
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                if remove_exercise_vis:
+                                Rectangle {
+                                    width: 30px;
+                                    height: 30px;
+                                    background: #026F8F;
+                                    border-radius: 2px;
+
+                                    Text {
+                                        text: "-";
+                                    }
+
+                                    TouchArea {
+                                        clicked => {
+                                            remove_exercise(exercises[i].name);
                                         }
                                     }
                                 }
@@ -365,6 +406,11 @@ component Settings {
                                             input-type: text;
                                             horizontal-alignment: center;
                                             vertical-alignment: center;
+
+                                            accepted => {
+                                                add_exercise(add_exercise_name.text, combo.current-value);
+                                                add_exercise_vis = !add_exercise_vis;
+                                            }
                                         }
                                     }
 
@@ -427,6 +473,7 @@ export component MainWindow inherits Window {
     callback changed_general_settings(bool);
     callback changed_activation_settings(string);
     callback add_exercise(string, string);
+    callback remove_exercise(string);
     
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
@@ -447,7 +494,6 @@ export component MainWindow inherits Window {
     //Settings
     in-out property <bool> setting_general_doubles: true;
     in-out property <[Exercise]> exercises;
-
 
     width: 1200px;
     height: 800px;
@@ -496,6 +542,9 @@ export component MainWindow inherits Window {
         }
         add_exercise(name, type) => {
             add_exercise(name, type);
+        }
+        remove_exercise(name) => {
+            remove_exercise(name);
         }
     }
 }

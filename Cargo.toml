@@ -6,14 +6,7 @@ edition = "2024"
 [dependencies]
 rand = "0.9.0"
 rodio = { version = "0.17", default-features = false, features = ["mp3"] }
-slint = { version = "1.10.0", default-features = false, features = [ 
-   "std", 
-   "backend-winit", 
-   "renderer-femtovg", 
-   "renderer-software", 
-   "backend-qt", 
-   "compat-1-2", 
- ] }
+slint = { version = "1.10.0", default-features = true }
 toml = "0.8.20"
 toml_edit = "0.22.24"
 

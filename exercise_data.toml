@@ -1,19 +1,19 @@
 [Pullup]
-reps = 1500
-amount = 60
-max = 30
+reps = 0
+amount = 0
+max = 0
 
 [Pushup]
-reps = 2300
-amount = 40
-max = 85
-
-[Situp]
-reps = 203
-amount = 8
-max = 40
+reps = 0
+amount = 0
+max = 0
 
 [Planche]
 reps = 5
 amount = 5
 max = 1
+
+[Fischel]
+reps = 0
+amount = 0
+max = 0

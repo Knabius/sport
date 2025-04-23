@@ -1,8 +1,9 @@
+use rodio::cpal::DeviceNameError;
 use toml_edit::{DocumentMut, Item, Table, value};
 use std::{cell::Ref, fs};
 use std::time::Instant;
 use std::process::Command;
-use slint::{SharedString, Timer, TimerMode, ToSharedString};
+use slint::{SharedString, Timer, TimerMode, ToSharedString, Weak};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fs::File;
@@ -43,16 +44,26 @@ fn change_exercise_status(exercise: &str) {
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
-fn add_exercise(exercise: &str) {
+fn add_exercise(exercise: &str, exercise_type: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
-    //TODO auch die config verändern
-    
-    doc[exercise]["reps"] = value(0);
-    doc[exercise]["amount"] = value(0);
-    doc[exercise]["max"] = value(0);
+    let mut table: Table = Table::new();
+
+    table["reps"] = value(0);
+    table["amount"] = value(0);
+    table["max"] = value(0);
+
+    doc[exercise] = Item::Table(table);
     
     fs::write(PATH_TO_DATA, doc.to_string()).expect("Fehler beim Schreiben!");
+
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    
+    doc["exercises"][exercise]["type"] = value(exercise_type);
+    doc["exercises"][exercise]["profiles"]["normal"] = value(true);
+    
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
 fn add_reps(exercise: &str, reps: i32) {
@@ -224,6 +235,24 @@ fn set_exercise_activation(exercise_name: slint::SharedString) {
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
+fn remove_exercise(exercise: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    doc.remove(exercise);
+
+    fs::write(PATH_TO_DATA, doc.to_string()).expect("Fehler beim Schreiben!");
+
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    if let Some(exercises) = doc.get_mut("exercises").and_then(|item| item.as_table_like_mut()) {
+        exercises.remove(exercise);
+    }
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
 fn main() {
     //Slint
     let ui = MainWindow::new().unwrap();
@@ -253,70 +282,75 @@ fn main() {
     let start_button_status_clone = start_button_status.clone();
 
     let ui_handle_save_reps = ui_handle.clone();
+    let ui_handle_add_exercise = ui_handle.clone();
+    let ui_handle_remove_exercise = ui_handle.clone();
+
 
     let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
     let chosen_exercise_rep_clone = chosen_exercise.clone();
 
     ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
 
-        if *start_button_status_clone.borrow() == true {
+        if !get_exercises().is_empty() {
+            if *start_button_status_clone.borrow() == true {
 
-            change_interval(floor, ceil);
+                change_interval(floor, ceil);
 
-            if let Some(handle) = ui_handle.upgrade() {
-                *start_button_status_clone.borrow_mut() = false;
-                handle.set_start_button_status(false);
+                if let Some(handle) = ui_handle.upgrade() {
+                    *start_button_status_clone.borrow_mut() = false;
+                    handle.set_start_button_status(false);
 
-                let interval: (i64, i64) = get_interval();
-                let time: f64 = rand::random_range(interval.0..interval.1) as f64;
-                *chosen_exercise.borrow_mut() = pick_random_exercise(get_exercises());
-                let chosen_exercise_clone = chosen_exercise.clone();
-                let start_time = Instant::now();
-                
-                let timer = Rc::new(Timer::default());
-                let timer_clone = timer.clone();
-                *is_running_clone.borrow_mut() = true;
-                let is_running_deep = is_running_clone.clone();
-                let start_button_status_deep = start_button_status_clone.clone();
-                let ui_handle_deep = ui_handle.clone();
+                    let interval: (i64, i64) = get_interval();
+                    let time: f64 = rand::random_range(interval.0..interval.1) as f64;
+                    *chosen_exercise.borrow_mut() = pick_random_exercise(get_exercises());
+                    let chosen_exercise_clone = chosen_exercise.clone();
+                    let start_time = Instant::now();
+                    
+                    let timer = Rc::new(Timer::default());
+                    let timer_clone = timer.clone();
+                    *is_running_clone.borrow_mut() = true;
+                    let is_running_deep = is_running_clone.clone();
+                    let start_button_status_deep = start_button_status_clone.clone();
+                    let ui_handle_deep = ui_handle.clone();
 
-                let sink = sink.clone();
+                    let sink = sink.clone();
 
-                timer.start(TimerMode::Repeated, std::time::Duration::from_millis(500), move || {
-                    let duration: f64 = start_time.elapsed().as_secs_f64();
+                    timer.start(TimerMode::Repeated, std::time::Duration::from_millis(500), move || {
+                        let duration: f64 = start_time.elapsed().as_secs_f64();
 
-                    if duration >= time {
-                        timer_clone.stop();
-                        *start_button_status_deep.borrow_mut() = true;
-                        if let Some(handle) = ui_handle_deep.upgrade() {
-                            handle.set_start_button_status(true);
-                            handle.set_chosen_exercise(chosen_exercise_clone.borrow().as_str().into());
-                            handle.set_current_view(CurrentView::RepInput);
+                        if duration >= time {
+                            timer_clone.stop();
+                            *start_button_status_deep.borrow_mut() = true;
+                            if let Some(handle) = ui_handle_deep.upgrade() {
+                                handle.set_start_button_status(true);
+                                handle.set_chosen_exercise(chosen_exercise_clone.borrow().as_str().into());
+                                handle.set_current_view(CurrentView::RepInput);
+                            }
+                            set_last_exercise(chosen_exercise_clone.borrow().as_str());
+                            let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("src/resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
+                            sink.borrow_mut().append(boing);
+
+                        } else if !*is_running_deep.borrow() {
+                            timer_clone.stop();
+                            *start_button_status_deep.borrow_mut() = true;
+                            if let Some(handle) = ui_handle_deep.upgrade() {
+                                handle.set_start_button_status(true);
+                            }
+
+                        } else {
+                            clear_screen();
+                            if let Some(handle) = ui_handle_deep.upgrade() {
+                                handle.set_passed_time(duration as i32);
+                            }
                         }
-                        set_last_exercise(chosen_exercise_clone.borrow().as_str());
-                        let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("src/resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
-                        sink.borrow_mut().append(boing);
-
-                    } else if !*is_running_deep.borrow() {
-                        timer_clone.stop();
-                        *start_button_status_deep.borrow_mut() = true;
-                        if let Some(handle) = ui_handle_deep.upgrade() {
-                            handle.set_start_button_status(true);
-                        }
-
-                    } else {
-                        clear_screen();
-                        if let Some(handle) = ui_handle_deep.upgrade() {
-                            handle.set_passed_time(duration as i32);
-                        }
-                    }
-                });
-            }
-        } else if *start_button_status_clone.borrow() == false {
-            *is_running_clone.borrow_mut() = false;
-            if let Some(handle) = ui_handle.upgrade() {
-                *start_button_status_clone.borrow_mut() = true;
-                handle.set_start_button_status(true);
+                    });
+                }
+            } else if *start_button_status_clone.borrow() == false {
+                *is_running_clone.borrow_mut() = false;
+                if let Some(handle) = ui_handle.upgrade() {
+                    *start_button_status_clone.borrow_mut() = true;
+                    handle.set_start_button_status(true);
+                }
             }
         }
     });
@@ -336,12 +370,29 @@ fn main() {
         set_exercise_activation(name);
     });
 
+    ui.on_add_exercise(move |name:SharedString, exercise_type:SharedString| {
+        add_exercise(name.as_str(), &exercise_type.as_str());
+
+        if let Some(handle) = ui_handle_add_exercise.upgrade() {
+            handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(get_exercise_settings())));
+        }
+    });
+
+    ui.on_remove_exercise(move |name: SharedString| {
+        remove_exercise(name.as_str());
+
+        if let Some(handle) = ui_handle_remove_exercise.upgrade() {
+            handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(get_exercise_settings())));
+        }
+
+    });
+
     ui.run().unwrap();
 }
 
 //TODO doubles noch implementieren
 //TODO profiles
-//TODO Menü mit knopf für +Übung, -Übung, 
 //TODO während des timer laufens auch extra reps eintragen können
-//TODO bei reps und main button enter nutzen können+
-//TODO falls alle übungen aus nicht angehen evtl meldung
+//TODO Main Button mit Enter auslösen
+//TODO daten einsehen können
+//TODO daten in diagrammen sehen können

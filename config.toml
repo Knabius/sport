@@ -4,27 +4,7 @@ doubles = true
 last_exercise = "Planche"
 
 [exercises]
-
-[exercises.Pullup]
-type = "reps"
-
-[exercises.Pullup.profiles]
-normal = false
-
-[exercises.Pushup]
-type = "reps"
-
-[exercises.Pushup.profiles]
-normal = false
-
-[exercises.Situp]
-type = "reps"
-
-[exercises.Situp.profiles]
-normal = false
-
-[exercises.Planche]
-type = "reps"
-
-[exercises.Planche.profiles]
-normal = true
+Pullup = { type = "Reps", profiles = { normal = false } }
+Pushup = { type = "Reps", profiles = { normal = false } }
+Planche = { type = "Reps", profiles = { normal = true } }
+Fischel = { type = "Reps", profiles = { normal = true } }
