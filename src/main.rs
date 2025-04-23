@@ -121,8 +121,25 @@ fn change_interval(floor: SharedString, ceil: SharedString) {
 }
 
 fn pick_random_exercise(exercises: Vec<String>) -> String {
-    let index: usize = rand::random_range(0..exercises.len());
-    exercises[index].clone()
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    let mut exercises: Vec<String> = exercises;
+    let doubles: bool = doc["doubles"].as_bool().unwrap();
+    let last_exercise: String = doc["last_exercise"].to_string();
+
+    if !doubles && exercises.len() > 1{
+        if let Some(index) = exercises.iter().position(|x| *x == last_exercise) {
+            exercises.remove(index);
+        }
+        let index: usize = rand::random_range(0..exercises.len());
+        println!("{}",exercises[index].clone());
+        exercises[index].clone()
+    } else {
+        let index: usize = rand::random_range(0..exercises.len());
+        println!("{}", exercises[index].clone());
+        exercises[index].clone()
+    }
 }
 
 fn get_exercises() -> Vec<String> {
@@ -319,6 +336,7 @@ fn main() {
                         let duration: f64 = start_time.elapsed().as_secs_f64();
 
                         if duration >= time {
+                            set_last_exercise(chosen_exercise_clone.borrow().as_str());
                             timer_clone.stop();
                             *start_button_status_deep.borrow_mut() = true;
                             if let Some(handle) = ui_handle_deep.upgrade() {
@@ -326,7 +344,6 @@ fn main() {
                                 handle.set_chosen_exercise(chosen_exercise_clone.borrow().as_str().into());
                                 handle.set_current_view(CurrentView::RepInput);
                             }
-                            set_last_exercise(chosen_exercise_clone.borrow().as_str());
                             let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("src/resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
                             sink.borrow_mut().append(boing);
 
@@ -338,7 +355,7 @@ fn main() {
                             }
 
                         } else {
-                            clear_screen();
+                            //clear_screen();
                             if let Some(handle) = ui_handle_deep.upgrade() {
                                 handle.set_passed_time(duration as i32);
                             }

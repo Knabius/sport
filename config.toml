@@ -1,6 +1,6 @@
-floor = 600
-ceil = 1800
-doubles = true
+floor = 1
+ceil = 2
+doubles = false
 last_exercise = "Planche"
 
 [exercises]

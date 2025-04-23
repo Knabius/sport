@@ -237,43 +237,43 @@ component Settings {
         border-width: 1px;
         border-color: #6b6868;
         TabWidget {
-            //Tab {
-            //    title: "General";
-            //    Rectangle {
-            //        VerticalBox {
-            //            alignment: start;
-            //            //REMINDER statt doppel rectangle vllt vertbox mit spacing
-            //            Rectangle {
-                //                width: 205px;
-                //                height: 40px;
-                //                border-width: 5px;
-                //                padding: 10px;
-                //                
-                //                Rectangle {
-                    //                    width: 200px; 
-                    //                    height: 35px;
-                    //                    border-width: 1.5px;
-                    //                    border-radius: 2px;
-                    //                    border-color: #6b6868;
-                    //                    HorizontalBox {
-                        //                        Text {
-                            //                            text: "Doubles";
-                            //                            font-size: 16px;
-                            //                        }
-                            //
-                            //                        doubles := Switch {
-                                //                            checked: setting_general_doubles;
-                                //                            toggled => {
-                                    //                                changed_general(doubles.checked);
-                                    //                            }
-                                    //                        }
-                                    //                    }
-                                    //                }
-                                    //            }
-                                    //        }
-                                    //    }
-                                    //}
-                                    //            
+            Tab {
+                title: "General";
+                Rectangle {
+                    VerticalBox {
+                        alignment: start;
+                        //REMINDER statt doppel rectangle vllt vertbox mit spacing
+                        Rectangle {
+                            width: 205px;
+                            height: 40px;
+                            border-width: 5px;
+                            padding: 10px;
+                            
+                            Rectangle {
+                                width: 200px; 
+                                height: 35px;
+                                border-width: 1.5px;
+                                border-radius: 2px;
+                                border-color: #6b6868;
+                                HorizontalBox {
+                                    Text {
+                                        text: "Doubles";
+                                        font-size: 16px;
+                                    }
+                
+                                    doubles := Switch {
+                                        checked: setting_general_doubles;
+                                        toggled => {
+                                            changed_general(doubles.checked);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+                                                
             Tab {
                 title: "Exercises";
                 VerticalBox {
