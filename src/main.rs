@@ -220,12 +220,11 @@ fn remove_exercise(exercise: &str) {
 fn main() {
     //Slint
     let ui = MainWindow::new().unwrap();
-    let ui_handle = ui.as_weak();
+    let ui_handle: slint::Weak<MainWindow> = ui.as_weak();
 
     //Audio
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let sink = Rc::new(RefCell::new(Sink::try_new(&stream_handle).unwrap()));
-
+    let sink: Rc<RefCell<Sink>> = Rc::new(RefCell::new(Sink::try_new(&stream_handle).unwrap()));
 
     //Initial Setup
     if let Some(handle) = ui_handle.upgrade() {
@@ -233,24 +232,29 @@ fn main() {
         handle.set_initial_floor_value(interval.0 as i32);
         handle.set_initial_ceil_value(interval.1 as i32);
         handle.set_setting_general_doubles(get_general_settings());
-        handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(get_exercise_settings())));
+
+        let exercise_structs: Vec<Exercise> = get_exercise_settings();
+        let exercise_structs_clone = exercise_structs.clone();
+        handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(exercise_structs)));
+        let exercise_names: Vec<slint::SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
+        handle.set_exercise_names(slint::ModelRc::new(slint::VecModel::from(exercise_names)));
     }
 
     // true => time-loop inaktiv
     // false => time-loop aktiv
 
-    let is_running = Rc::new(RefCell::new(true));
-    let is_running_clone = is_running.clone();
-    let start_button_status = Rc::new(RefCell::new(true));
-    let start_button_status_clone = start_button_status.clone();
+    let is_running: Rc<RefCell<bool>> = Rc::new(RefCell::new(true));
+    let is_running_clone: Rc<RefCell<bool>> = is_running.clone();
+    let start_button_status: Rc<RefCell<bool>> = Rc::new(RefCell::new(true));
+    let start_button_status_clone: Rc<RefCell<bool>> = start_button_status.clone();
 
-    let ui_handle_save_reps = ui_handle.clone();
-    let ui_handle_add_exercise = ui_handle.clone();
-    let ui_handle_remove_exercise = ui_handle.clone();
+    let ui_handle_save_reps: slint::Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_add_exercise: slint::Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_remove_exercise: slint::Weak<MainWindow> = ui_handle.clone();
 
 
     let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
-    let chosen_exercise_rep_clone = chosen_exercise.clone();
+    let chosen_exercise_rep_clone: Rc<RefCell<String>> = chosen_exercise.clone();
 
     ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
 
@@ -266,17 +270,17 @@ fn main() {
                     let interval: (i64, i64) = get_interval();
                     let time: f64 = rand::random_range(interval.0..interval.1) as f64;
                     *chosen_exercise.borrow_mut() = pick_random_exercise(get_exercises());
-                    let chosen_exercise_clone = chosen_exercise.clone();
-                    let start_time = Instant::now();
+                    let chosen_exercise_clone: Rc<RefCell<String>> = chosen_exercise.clone();
+                    let start_time: Instant = Instant::now();
                     
-                    let timer = Rc::new(Timer::default());
-                    let timer_clone = timer.clone();
+                    let timer: Rc<Timer> = Rc::new(Timer::default());
+                    let timer_clone: Rc<Timer> = timer.clone();
                     *is_running_clone.borrow_mut() = true;
-                    let is_running_deep = is_running_clone.clone();
-                    let start_button_status_deep = start_button_status_clone.clone();
-                    let ui_handle_deep = ui_handle.clone();
+                    let is_running_deep: Rc<RefCell<bool>> = is_running_clone.clone();
+                    let start_button_status_deep: Rc<RefCell<bool>> = start_button_status_clone.clone();
+                    let ui_handle_deep: slint::Weak<MainWindow> = ui_handle.clone();
 
-                    let sink = sink.clone();
+                    let sink: Rc<RefCell<Sink>> = sink.clone();
 
                     timer.start(TimerMode::Repeated, std::time::Duration::from_millis(500), move || {
                         let duration: f64 = start_time.elapsed().as_secs_f64();
@@ -348,12 +352,14 @@ fn main() {
         }
     });
 
+    ui.on_add_reps(move |name: SharedString, reps: SharedString| {
+        add_reps(name.as_str(), reps.as_str().parse::<i32>().unwrap());
+    });
+
     ui.run().unwrap();
 }
 
-//TODO doubles noch implementieren
 //TODO profiles
-//TODO während des timer laufens auch extra reps eintragen können
 //TODO Main Button mit Enter auslösen
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können

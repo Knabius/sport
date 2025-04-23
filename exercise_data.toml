@@ -4,16 +4,16 @@ amount = 0
 max = 0
 
 [Pushup]
-reps = 0
-amount = 0
-max = 0
+reps = 20
+amount = 1
+max = 20
 
 [Planche]
 reps = 5
 amount = 5
 max = 1
 
-[Fischel]
-reps = 0
-amount = 0
-max = 0
+[Planche-Pushup]
+reps = 5
+amount = 1
+max = 5

@@ -1,5 +1,5 @@
-floor = 1
-ceil = 2
+floor = 600
+ceil = 1800
 doubles = false
 last_exercise = "Planche"
 
@@ -7,4 +7,4 @@ last_exercise = "Planche"
 Pullup = { type = "Reps", profiles = { normal = false } }
 Pushup = { type = "Reps", profiles = { normal = false } }
 Planche = { type = "Reps", profiles = { normal = true } }
-Fischel = { type = "Reps", profiles = { normal = true } }
+Planche-Pushup = { type = "Reps", profiles = { normal = true } }

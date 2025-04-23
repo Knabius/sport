@@ -227,15 +227,97 @@ component Settings {
     callback changed_activation(string);
     callback add_exercise(string, string);
     callback remove_exercise(string);
+    callback add_reps(string, string);
 
     in property <bool> setting_general_doubles;
     in-out property <[Exercise]> exercises;
+    in-out property <[string]> exercise_names;
     in-out property <bool> add_exercise_vis: false;
     in-out property <bool> remove_exercise_vis: false;
+    in-out property <bool> add_reps_vis: false;
 
     width: 600px;
     height: 400px;
+
     Rectangle {
+        y: -140px;
+        width: 200px;
+        height: 80px;
+        background: add_reps_vis ? #B71C1C : #026F8F;
+        border-radius: 5px;
+        border-width: 2px;
+        border-color: #000000;
+        
+        Text {
+            text: "Add Reps";
+            font-size: 30px;
+        }
+
+        TouchArea {
+            clicked => {
+                add_reps_vis = !add_reps_vis;
+                add_rep_box.current-index = 0;
+                add_reps_input.text = "Reps";
+            }
+        }
+    }
+
+    Rectangle {
+        visible: add_reps_vis;
+        width: 400px;
+        height: 300px;
+        border-color: #6b6868;
+        border-width: 1.5px;
+        border-radius: 2px;
+
+        VerticalBox {
+            alignment: center;
+            HorizontalBox {
+                alignment: center;
+
+                add_rep_box := ComboBox {
+                    model: exercise_names;
+                }
+        
+                add_reps_input := TextInput {
+                    text: "Reps";
+                    font-size: 20px;
+
+                    accepted => {
+                        add_reps(add_rep_box.current-value, add_reps_input.text);
+                        add_reps_vis = !add_reps_vis;
+                    }
+                }
+            }
+            HorizontalBox {
+                alignment: center;
+
+                Rectangle {
+                    width: 80px;
+                    height: 40px;
+                    background: #026F8F;
+                    border-radius: 3px;
+                    border-width: 1px;
+                    border-color: #000000;
+                    
+                    Text {
+                        text: "Add";
+                        font-size: 20px;
+                    }
+        
+                    TouchArea {
+                        clicked => {
+                            add_reps(add_rep_box.current-value, add_reps_input.text);
+                            add_reps_vis = !add_reps_vis;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        visible: !add_reps_vis;
         border-radius: 2px;
         border-width: 1px;
         border-color: #6b6868;
@@ -478,6 +560,7 @@ export component MainWindow inherits Window {
     callback changed_activation_settings(string);
     callback add_exercise(string, string);
     callback remove_exercise(string);
+    callback add_reps(string, string);
     
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
@@ -498,6 +581,7 @@ export component MainWindow inherits Window {
     //Settings
     in-out property <bool> setting_general_doubles: true;
     in-out property <[Exercise]> exercises;
+    in-out property <[string]> exercise_names;
 
     width: 1200px;
     height: 800px;
@@ -538,6 +622,7 @@ export component MainWindow inherits Window {
         visible: current_view == CurrentView.Settings;
         setting_general_doubles: setting_general_doubles;
         exercises: exercises;
+        exercise_names: exercise_names;
         changed_general(doubles) => {
             changed_general_settings(doubles);
         }
@@ -549,6 +634,9 @@ export component MainWindow inherits Window {
         }
         remove_exercise(name) => {
             remove_exercise(name);
+        }
+        add_reps(name, reps) => {
+            add_reps(name, reps);
         }
     }
 }
