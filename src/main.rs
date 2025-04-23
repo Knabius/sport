@@ -1,42 +1,18 @@
-use rodio::cpal::DeviceNameError;
 use toml_edit::{DocumentMut, Item, Table, value};
-use std::{cell::Ref, fs};
+use std::fs;
 use std::time::Instant;
-use std::process::Command;
-use slint::{SharedString, Timer, TimerMode, ToSharedString, Weak};
+use slint::{SharedString, Timer, TimerMode, ToSharedString};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::BufReader;
 use rodio::{Decoder, OutputStream, Sink, Source};
-mod funcs;
 
 const PATH_TO_CONFIG: &str = "config.toml";
 const PATH_TO_DATA: &str = "exercise_data.toml";
 const VOLUME: f32 = 0.3;
 
 slint::slint! {export { MainWindow } from "src/ui.slint";}
-
-fn change_exercise_status(exercise: &str) {
-    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
-    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
-
-    let mut status: bool = true;
-
-    if let Some(exercises_table) = doc.get("exercises") {
-        if let Some(exercise_table) = exercises_table.get(exercise) {
-            if let Some(profiles_table) = exercise_table.get("profiles") {
-                if let Some(profile_value) = profiles_table.get("normal") {
-                    status = profile_value.as_bool().unwrap();
-                }
-            }
-        }
-    }
-
-    doc["exercises"][exercise]["profiles"]["normal"] = value(!status);
-
-    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
-}
 
 fn add_exercise(exercise: &str, exercise_type: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
@@ -100,8 +76,6 @@ fn change_interval(floor: SharedString, ceil: SharedString) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
-    let mut problem_number: i32 = 0;
-
     let floor_value: &str  = floor.as_str();
     let ceil_value: &str   = ceil.as_str();
     if let Ok(floor) = floor_value.parse::<i64>() {
@@ -116,7 +90,7 @@ fn change_interval(floor: SharedString, ceil: SharedString) {
 
 fn pick_random_exercise(exercises: Vec<String>) -> String {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
-    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut exercises: Vec<String> = exercises;
     let doubles: bool = doc["doubles"].as_bool().unwrap();
@@ -136,7 +110,7 @@ fn pick_random_exercise(exercises: Vec<String>) -> String {
 
 fn get_exercises() -> Vec<String> {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
-    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut exercises: Vec<String> = Vec::new();
 
@@ -153,28 +127,9 @@ fn get_exercises() -> Vec<String> {
     exercises
 }
 
-fn start_timer() {
-    let interval: (i64, i64) = get_interval();
-
-    let time: f64 = rand::random_range(interval.0..interval.1) as f64;
-    let chosen_exercise: String = pick_random_exercise(get_exercises());
-    let start_time = Instant::now();
-    let mut duration = start_time.elapsed().as_secs_f64();
-
-    loop {
-        duration = start_time.elapsed().as_secs_f64();
-        clear_screen();
-        println!("{}", duration.round());
-        if duration >= time {break}
-        std::thread::sleep(std::time::Duration::from_secs(1));
-    }
-
-    println!("Übung: {}", chosen_exercise);
-}
-
 fn get_interval() -> (i64, i64) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
-    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     if let Some(floor) = doc.get("floor") {
         if let Some(ceil) = doc.get("ceil") {
@@ -196,7 +151,7 @@ fn set_last_exercise(exercise: &str) {
 
 fn get_general_settings() -> bool {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
-    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let setting_doubles: bool = doc["doubles"].as_bool().unwrap();
     setting_doubles
@@ -213,7 +168,7 @@ fn set_general_settings(setting_doubles: bool) {
 
 fn get_exercise_settings() -> Vec<Exercise> {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
-    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut exercises: Vec<String>  = Vec::new();
     let mut activations: Vec<bool> = Vec::new();
@@ -283,7 +238,6 @@ fn main() {
 
     // true => time-loop inaktiv
     // false => time-loop aktiv
-    let mut start_button_status: bool = true;
 
     let is_running = Rc::new(RefCell::new(true));
     let is_running_clone = is_running.clone();
