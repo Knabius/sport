@@ -1,18 +1,5 @@
 import { TabWidget, VerticalBox, HorizontalBox, Switch, ListView, ComboBox } from "std-widgets.slint";
 
-global Palette {
-    property <color> primary: #3498db;
-    property <color> secondary: #2ecc71;
-    property <color> accent: #e74c3c;
-    property <color> text_primary: #333333;
-    property <color> text_secondary: #555555;
-    property <color> text_on_primary: #ffffff;
-    property <color> text_on_accent: #ffffff;
-    property <color> surface: #f4f6f6;
-    property <color> background: #ffffff;
-    property <color> border: #dddddd;
-}
-
 //Enums
 enum CurrentView {
     BasicButton,
@@ -35,18 +22,15 @@ component StartButton inherits Rectangle {
 
     height: 300px;
     width: self.height;
-    background: status ? Palette.primary : Palette.accent;
+    background: status ? #026F8F : #B71C1C;
     border-radius: self.height/2;
     border-width: 2px;
-    border-color: Palette.border;
+    border-color: Colors.black;
     clip: true;
     
     Text {
         text: status ? "Start" : time + "s";
         font-size: 40px;
-        color: Palette.text_on_primary;
-        horizontal-alignment: center;
-        vertical-alignment: center;
     }
 
     TouchArea {
@@ -62,17 +46,16 @@ component RepInput inherits Rectangle {
     callback save_reps(string);
 
     in property <string> exercise;
-    padding: 15px; // Added padding
 
     VerticalLayout {
         alignment: center;
-        spacing: 10px; // Adjusted spacing
+        spacing: 5px;
         HorizontalLayout {
             alignment: center;
             Text {
                 text: exercise + "s";
                 font-size: 40px;
-                color: Palette.primary;
+                color: #026F8F;
             }
         }
         HorizontalLayout {
@@ -81,7 +64,6 @@ component RepInput inherits Rectangle {
             Text {
                 text: "Enter amount of completed reps below";
                 font-size: 15px;
-                color: Palette.text_secondary;
             }
         }
         HorizontalLayout {
@@ -89,13 +71,13 @@ component RepInput inherits Rectangle {
             Rectangle {
                 width: 150px;
                 height: 40px;
-                background: Palette.surface;
-                border-radius: 6px; // Standardized
+                background: #41667188;
+                border-radius: 10px;
                 border-width: 1px;
-                border-color: Palette.border;
+                border-color: Colors.black;
         
                 reps := TextInput {
-                    color: Palette.text_primary;
+                    color: Colors.white;
                     font-size: 20px;
                     text: "0";
                     input-type: number;
@@ -114,15 +96,14 @@ component RepInput inherits Rectangle {
             Rectangle {
                 width: 80px;
                 height: 40px;
-                background: Palette.primary;
-                border-radius: 6px; // Standardized
+                background: #026F8F;
+                border-radius: 10px;
                 border-width: 1px;
-                border-color: Palette.border;
+                border-color: Colors.black;
     
                 Text {
                     text: "Save";
                     font-size: 20px;
-                    color: Palette.text_on_primary;
                 }
 
                 TouchArea {
@@ -171,13 +152,13 @@ component BasicButton {
                 Rectangle {
                     width: 150px;
                     height: 40px;
-                    background: Palette.surface;
-                    border-radius: 6px; // Standardized
+                    background: #41667188;
+                    border-radius: 10px;
                     border-width: 1px;
-                    border-color: Palette.border;
+                    border-color: Colors.black;
                     
                     floor_input := TextInput {
-                        color: Palette.text_primary;
+                        color: #FFFFFF;
                         font-size: 20px;
                         input-type: number;
                         text: initial_floor_value;
@@ -192,13 +173,13 @@ component BasicButton {
                 Rectangle {
                     width: 150px;
                     height: 40px;
-                    background: Palette.surface;
-                    border-radius: 6px; // Standardized
+                    background: #41667188;
+                    border-radius: 10px;
                     border-width: 1px;
-                    border-color: Palette.border;
+                    border-color: Colors.black;
                     
                     ceil_input := TextInput {
-                        color: Palette.text_primary;
+                        color: #FFFFFF;
                         font-size: 20px;
                         input-type: number;
                         text: initial_ceil_value;
@@ -218,14 +199,14 @@ component BasicButton {
 component SettingsButton {
     callback open_settings();
 
-    // x and y are set in MainWindow during instantiation for top-right positioning
     Rectangle {
-        background: Palette.surface; // Changed background
         border-radius: 10px;
         width: 50px;
         height: 50px;
-        border-width: 0px; // Removed border
-        // border-color: Palette.border; 
+        x: -595px;
+        y: -395px;
+        border-width: 2px;
+        border-color: Colors.black;
         
         Image {
             width: parent.width;
@@ -262,15 +243,14 @@ component Settings {
         y: -140px;
         width: 200px;
         height: 80px;
-        background: add_reps_vis ? Palette.accent : Palette.primary;
-        border-radius: 6px; // Standardized
+        background: add_reps_vis ? #B71C1C : #026F8F;
+        border-radius: 5px;
         border-width: 2px;
-        border-color: Palette.border;
+        border-color: #000000;
         
         Text {
             text: "Add Reps";
             font-size: 30px;
-            color: Palette.text_on_primary;
         }
 
         TouchArea {
@@ -282,34 +262,26 @@ component Settings {
         }
     }
 
-    Rectangle { // "Add Reps" popup
+    Rectangle {
         visible: add_reps_vis;
         width: 400px;
-        height: 300px; // Or make it intrinsic based on content + padding
-        background: Palette.surface;
-        border-color: Palette.border;
+        height: 300px;
+        border-color: #6b6868;
         border-width: 1.5px;
-        border-radius: 8px; // Standardized for popup
+        border-radius: 2px;
 
         VerticalBox {
             alignment: center;
-            spacing: 10px; // Added spacing
-            padding: 10px; // Added padding
             HorizontalBox {
                 alignment: center;
-                spacing: 10px; // Spacing between ComboBox and TextInput
 
                 add_rep_box := ComboBox {
                     model: exercise_names;
-                    height: 35px; // Consistent height
                 }
         
                 add_reps_input := TextInput {
                     text: "Reps";
                     font-size: 20px;
-                    color: Palette.text_primary;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
 
                     accepted => {
                         add_reps(add_rep_box.current-value, add_reps_input.text);
@@ -323,17 +295,14 @@ component Settings {
                 Rectangle {
                     width: 80px;
                     height: 40px;
-                    background: Palette.primary;
-                    border-radius: 6px; // Standardized
+                    background: #026F8F;
+                    border-radius: 3px;
                     border-width: 1px;
-                    border-color: Palette.border;
+                    border-color: #000000;
                     
                     Text {
                         text: "Add";
                         font-size: 20px;
-                        color: Palette.text_on_primary;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
                     }
         
                     TouchArea {
@@ -347,43 +316,34 @@ component Settings {
         }
     }
 
-    Rectangle { // Main settings area with TabWidget
+    Rectangle {
         visible: !add_reps_vis;
-        border-radius: 8px; // Standardized for container
+        border-radius: 2px;
         border-width: 1px;
-        border-color: Palette.border;
-        background: Palette.background;
+        border-color: #6b6868;
         TabWidget {
             Tab {
                 title: "General";
                 Rectangle {
-                    background: Palette.surface;
-                    padding: 10px; // Added padding to tab content area
                     VerticalBox {
                         alignment: start;
                         //REMINDER statt doppel rectangle vllt vertbox mit spacing
-                        Rectangle { // Outer container for "Doubles" setting
-                            width: 100%; // Fill parent tab area
-                            // height: 40px; // Height can be intrinsic or set
-                            border-width: 0px; // No border for this outer one
-                            padding: 5px; // Adjusted padding
-                            // border-color: transparent; 
+                        Rectangle {
+                            width: 205px;
+                            height: 40px;
+                            border-width: 5px;
+                            padding: 10px;
                             
-                            Rectangle { // Inner container with the border
-                                width: 100%; // Fill outer rectangle
+                            Rectangle {
+                                width: 200px; 
                                 height: 35px;
                                 border-width: 1.5px;
-                                border-radius: 6px; // Standardized
-                                border-color: Palette.border;
-                                background: Palette.background;
+                                border-radius: 2px;
+                                border-color: #6b6868;
                                 HorizontalBox {
-                                    padding: 5px; // Internal padding for content
-                                    spacing: 10px; // Spacing between text and switch
-                                    vertical-alignment: center; // Align items vertically
                                     Text {
                                         text: "Doubles";
                                         font-size: 16px;
-                                        color: Palette.text_primary;
                                     }
                 
                                     doubles := Switch {
@@ -401,19 +361,15 @@ component Settings {
                                                 
             Tab {
                 title: "Exercises";
-                Rectangle { 
-                    background: Palette.surface;
-                    padding: 10px; // Added padding to tab content area
                 VerticalBox {
-                    HorizontalBox { // For add/remove icons
+                    HorizontalBox {
                         alignment: center;
-                        spacing: 10px; // Adjusted spacing
+                        spacing: 15px;
                         Rectangle {
                             height: 30px;
                             width: 30px;
-                            background: add_exercise_vis ? Palette.accent : Palette.primary;
-                            border-radius: 6px; // Standardized
-                            border-width: 0px; // Removed border
+                            background: add_exercise_vis ? #B71C1C : #026F8F;
+                            border-radius: 2px;
                             
                             Image {
                                 width: parent.width*0.6;
@@ -432,9 +388,8 @@ component Settings {
                         Rectangle {
                             height: 30px;
                             width: 30px;
-                            background: remove_exercise_vis ? Palette.accent : Palette.primary;
-                            border-radius: 6px; // Standardized
-                            border-width: 0px; // Removed border
+                            background: remove_exercise_vis ? #B71C1C : #026F8F;
+                            border-radius: 2px;
 
                             Image {
                                 width: parent.width*0.6;
@@ -451,147 +406,131 @@ component Settings {
                         }
                     }
                                         
-                    // New VerticalLayout to wrap ListView and Add Exercise form
-                    VerticalLayout {
-                        spacing: 10px; // Spacing between ListView/form and the icon buttons above
-                                        
-                        if !add_exercise_vis:
-                        ListView {
-                            for data[i] in exercises:
-                            Rectangle { // ListView item
-                                width: 100%; // Fill available width
-                                height: 40px;
-                                border-width: 1px; 
-                                padding: 5px; // Adjusted padding for list item
-                                border-color: Palette.border;
-                                border-radius: 6px; // Standardized
-                                
-                                HorizontalBox { // Holds content and remove button
-                                    alignment: center;
-                                    spacing: 5px; // Spacing between content area and remove button
+                    if !add_exercise_vis:
+                    ListView {
+                        for data[i] in exercises:
+                        Rectangle {
+                            width: 205px;
+                            height: 40px;
+                            border-width: 5px;
+                            padding: 10px;
+                            
+                            HorizontalBox {
+                                alignment: center;
 
-                                    Rectangle { // Content area (text and switch)
-                                        width: remove_exercise_vis ? parent.width - 30px - 5px : 100%; // Dynamic width
-                                        height: 100%; 
-                                        border-width: 0px; // No border for this inner rect
-                                        background: Palette.background;
-                                        animate width {
-                                             easing: ease-in;
-                                             duration: 300ms;
-                                        }
-                    
-                                        HorizontalBox { // Inner content layout
-                                            padding: 5px; 
-                                            spacing: 5px; 
-                                            vertical-alignment: center;
-                                            Text {
-                                                text: data.name;
-                                                font-size: 16px;
-                                                color: Palette.text_primary;
-                                            }
+                                Rectangle {
+                                    width: remove_exercise_vis ? 160px : 200px;
+                                    height: 35px;
+                                    border-width: 1.5px;
+                                    border-radius: 2px;
+                                    border-color: #6b6868;
+                                    animate width {
+                                         easing: ease-in;
+                                         duration: 300ms;
+                                    }
                 
-                                            Switch {
-                                                checked: data.activation_status;
-                                                toggled => {
-                                                    exercises[i].activation_status = !exercises[i].activation_status;
-                                                    changed_activation(exercises[i].name);
-                                                }
+                                    HorizontalBox {
+                                        Text {
+                                            text: data.name;
+                                            font-size: 16px;
+                                        }
+            
+                                        Switch {
+                                            checked: data.activation_status;
+                                            toggled => {
+                                                exercises[i].activation_status = !exercises[i].activation_status;
+                                                changed_activation(exercises[i].name);
                                             }
                                         }
                                     }
-                                    
-                                    if remove_exercise_vis:
-                                    Rectangle { // Remove button
-                                        width: 30px;
-                                        height: 30px;
-                                        background: Palette.primary;
-                                        border-radius: 6px; // Standardized
+                                }
+                                
+                                if remove_exercise_vis:
+                                Rectangle {
+                                    width: 30px;
+                                    height: 30px;
+                                    background: #026F8F;
+                                    border-radius: 2px;
 
-                                        Text {
-                                            text: "-";
-                                            color: Palette.text_on_primary;
-                                            horizontal-alignment: center;
-                                            vertical-alignment: center;
-                                        }
+                                    Text {
+                                        text: "-";
+                                    }
 
-                                        TouchArea {
-                                            width: parent.width;
-                                            height: parent.height;
-                                            clicked => {
-                                                remove_exercise(exercises[i].name);
-                                            }
+                                    TouchArea {
+                                        clicked => {
+                                            remove_exercise(exercises[i].name);
                                         }
                                     }
                                 }
                             }
                         }
+                    }
 
-                        if add_exercise_vis :
-                        VerticalBox { // "Add Exercise" form container
-                            // height property removed, let it size by content or parent
+                    if add_exercise_vis :
+                    VerticalBox {
+                        height: add_exercise_vis ? 0px : parent.height;
+                        alignment: center;
+                        HorizontalBox {
                             alignment: center;
-                            // spacing: 10px; // This VB is for the form itself, inner VB will space fields
-                            HorizontalBox { // To center the form Rectangle
-                                alignment: center;
-                                Rectangle { // Form background and border
-                                    background: Palette.surface;
-                                    width: 300px; 
-                                    // height: 200px; // Let height be intrinsic
-                                    border-radius: 8px; // Standardized for form container
-                                    border-color: Palette.border;
-                                    border-width: 1px;
-                                    padding: 15px; // Padding for the form content
-                                    
-                                    VerticalBox { // Layout for form fields
-                                        spacing: 10px; // Spacing between form fields
+                            Rectangle {
+                                background: #4b4949;
+                                width: 300px;
+                                height: 200px;
+                                
+                                VerticalBox {
+                                    spacing: 0px;
+                                    alignment: center;
+
+                                    HorizontalBox {
                                         alignment: center;
 
-                                        HorizontalBox { // Name input field
-                                            alignment: center;
-                                            add_exercise_name := TextInput {
-                                                color: Palette.text_primary;
-                                                font-size: 20px;
-                                                text: "Name";
-                                                horizontal-alignment: center;
-                                                vertical-alignment: center;
-                                                // width: parent.width * 0.9; // Consider relative width
+                                        add_exercise_name := TextInput {
+                                            color: Colors.white;
+                                            font-size: 20px;
+                                            text: "Name";
+                                            input-type: text;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+
+                                            accepted => {
+                                                add_exercise(add_exercise_name.text, combo.current-value);
+                                                add_exercise_vis = !add_exercise_vis;
                                             }
                                         }
+                                    }
 
-                                        HorizontalBox { // Exercise type ComboBox
-                                            alignment: center;
-                                            combo := ComboBox {
-                                                height: 35px;
-                                                width: 120px; // Wider for "Time" and "Reps"
-                                                // current-value and model are already set
-                                            }
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        combo := ComboBox {
+                                            height: 35px;
+                                            width: 80px;
+                                            model: ["Reps", "Time"];
+                                            current-value: "Reps";
+                                            current-index: 0;
                                         }
+                                    }
 
-                                        HorizontalBox { // Save button
-                                            alignment: center;
-                                            Rectangle {
-                                                width: 80px;
-                                                height: 40px;
-                                                background: Palette.primary;
-                                                border-radius: 6px; // Standardized
-                                                border-width: 1px;
-                                                border-color: Palette.border;
-                                    
-                                                Text {
-                                                    text: "Save";
-                                                    font-size: 20px;
-                                                    color: Palette.text_on_primary;
-                                                    horizontal-alignment: center;
-                                                    vertical-alignment: center;
-                                                }
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        Rectangle {
+                                            width: 80px;
+                                            height: 40px;
+                                            background: #026F8F;
+                                            border-radius: 10px;
+                                            border-width: 1px;
+                                            border-color: Colors.black;
                                 
-                                                TouchArea {
-                                                    width: parent.width;
-                                                    height: parent.height;
-                                                    clicked => {
-                                                        add_exercise(add_exercise_name.text, combo.current-value);
-                                                        add_exercise_vis = !add_exercise_vis;
-                                                    }
+                                            Text {
+                                                text: "Save";
+                                                font-size: 20px;
+                                            }
+                            
+                                            TouchArea {
+                                                clicked => {
+                                                    add_exercise(add_exercise_name.text, combo.current-value);
+                                                    add_exercise_vis = !add_exercise_vis;
                                                 }
                                             }
                                         }
@@ -599,14 +538,14 @@ component Settings {
                                 }
                             }
                         }
-                    } // End of new VerticalLayout wrapper
+                    }
+                    
                 }
             }
             Tab {
                 title: "Profiles";
                 Rectangle {
-                    background: Palette.surface;
-                    padding: 10px; // Added padding to tab content area
+    
                 }
             }
         }
@@ -646,7 +585,6 @@ export component MainWindow inherits Window {
 
     width: 1200px;
     height: 800px;
-    background: Palette.background;
 
     RepInput {
         visible: current_view == CurrentView.RepInput;
@@ -668,9 +606,7 @@ export component MainWindow inherits Window {
         }
     }
     
-    settings_button := SettingsButton {
-        x: parent.width - self.width - 20px; // Position top-right
-        y: 20px;                             // With 20px margin
+    SettingsButton {
         property <CurrentView> last_view;
         open_settings => {
             if current_view == CurrentView.Settings {
