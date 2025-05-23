@@ -1,44 +1,54 @@
 [Pushup]
-Reps = 2529
-Amount = 67
-Max = 50
+reps = 2848
+amount = 77
+max = 50
 
 [Lean]
-Reps = 190
-Amount = 190
-Max = 1
+reps = 190
+amount = 190
+max = 1
 
 [Abs]
-Reps = 207
-Amount = 14
-Max = 20
+reps = 207
+amount = 14
+max = 20
 
 [Lever]
-Reps = 59
-Amount = 59
-Max = 1
+reps = 59
+amount = 59
+max = 1
 
 [Pullup]
-Reps = 1246
-Amount = 52
-Max = 26
+reps = 1246
+amount = 52
+max = 26
 
 [Sally]
 Time = 1392
-Amount = 7
-Max = 204
+amount = 7
+max = 204
 
 [Swing]
-Reps = 87
-Amount = 67
-Max = 9
+reps = 87
+amount = 67
+max = 9
 
 [Planche]
-Reps = 28
-Amount = 28
-Max = 1
+reps = 34
+amount = 34
+max = 1
 
-[PlanchePushup]
-Reps = 5
-Amount = 1
-Max = 5
+[Planche-Pushup]
+reps = 34
+amount = 5
+max = 8
+
+[Handstand]
+reps = 1
+amount = 1
+max = 1
+
+[Stretch]
+reps = 1
+amount = 1
+max = 1

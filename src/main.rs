@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use toml_edit::{DocumentMut, Item, Table, value};
 use std::fs;
 use std::time::Instant;
@@ -89,6 +91,7 @@ fn change_interval(floor: SharedString, ceil: SharedString) {
 }
 
 fn pick_random_exercise(exercises: Vec<String>) -> String {
+    //FIXME doubles funktioniert noch nicht
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
@@ -364,3 +367,4 @@ fn main() {
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können
 //TODO prioritize
+//FIXME nach hinzufügen von übung muss übung auch in add reps
