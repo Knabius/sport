@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4.41"
+fs = "0.0.5"
+io = "0.0.2"
 rand = "0.9.0"
 rodio = { version = "0.17", default-features = false, features = ["mp3"] }
 slint = { version = "1.10.0", default-features = true }

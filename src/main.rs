@@ -6,12 +6,14 @@ use std::time::Instant;
 use slint::{SharedString, Timer, TimerMode, ToSharedString};
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::fs::File;
-use std::io::BufReader;
+use std::fs::{File, OpenOptions};
+use std::io::{BufReader, Write};
 use rodio::{Decoder, OutputStream, Sink, Source};
+use chrono::Local;
 
 const PATH_TO_CONFIG: &str = "config.toml";
 const PATH_TO_DATA: &str = "exercise_data.toml";
+const PATH_TO_CHRONO: &str = "chronological_data.txt";
 const VOLUME: f32 = 0.3;
 
 slint::slint! {export { MainWindow } from "src/ui.slint";}
@@ -70,6 +72,9 @@ fn add_reps(exercise: &str, reps: i32) {
             doc[exercise]["reps"] = value(all_reps);
             
             fs::write(PATH_TO_DATA, doc.to_string()).expect("Fehler beim Schreiben!");
+
+            let mut chrono: File = OpenOptions::new().write(true).append(true).create(true).open(PATH_TO_CHRONO).unwrap();
+            writeln!(chrono, "[{}]:{}:{}", Local::now().format("%Y-%m-%d").to_string(),exercise, reps);
         }
     }
 }

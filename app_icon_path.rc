@@ -1,3 +1,6 @@
 #define IDI_MYICON 101
 
-app_icon ICON "resources/app_icon.ico"
+// Korrekter Pfad zum Icon (relativ zur app_icon_path.rc, die im Projekt-Root liegt)
+// Du kannst entweder IDI_MYICON oder einen generischen Namen wie "MAINICON" verwenden.
+// Windows nimmt oft das erste Icon mit der niedrigsten ID als Anwendungsicon.
+IDI_MYICON ICON "src/resources/app_icon.ico"
