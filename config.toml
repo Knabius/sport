@@ -1,5 +1,5 @@
-floor = 600
-ceil = 1200
+floor = 1
+ceil = 5
 doubles = false
 last_exercise = "Stretch"
 

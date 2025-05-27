@@ -11,9 +11,9 @@ use std::io::{BufReader, Write};
 use rodio::{Decoder, OutputStream, Sink, Source};
 use chrono::Local;
 
-const PATH_TO_CONFIG: &str = "config.toml";
-const PATH_TO_DATA: &str = "exercise_data.toml";
-const PATH_TO_CHRONO: &str = "chronological_data.txt";
+const PATH_TO_CONFIG: &str = "resources/config.toml";
+const PATH_TO_DATA: &str = "resources/exercise_data.toml";
+const PATH_TO_CHRONO: &str = "resources/chronological_data.txt";
 const VOLUME: f32 = 0.3;
 
 slint::slint! {export { MainWindow } from "src/ui.slint";}
@@ -264,6 +264,8 @@ fn main() {
     let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
     let chosen_exercise_rep_clone: Rc<RefCell<String>> = chosen_exercise.clone();
 
+    let sink_clone: Rc<RefCell<Sink>> = sink.clone();
+
     ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
 
         if !get_exercises().is_empty() {
@@ -302,7 +304,7 @@ fn main() {
                                 handle.set_chosen_exercise(chosen_exercise_clone.borrow().as_str().into());
                                 handle.set_current_view(CurrentView::RepInput);
                             }
-                            let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("src/resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
+                            let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
                             sink.borrow_mut().append(boing);
 
                         } else if !*is_running_deep.borrow() {
@@ -334,6 +336,7 @@ fn main() {
             handle.set_current_view(CurrentView::BasicButton);
         }
         add_reps(chosen_exercise_rep_clone.borrow().as_str(), reps.parse::<i32>().unwrap());
+        sink_clone.borrow_mut().clear();
     });
 
     ui.on_changed_general_settings(move |setting_doubles: bool| {
