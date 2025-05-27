@@ -304,8 +304,11 @@ fn main() {
                                 handle.set_chosen_exercise(chosen_exercise_clone.borrow().as_str().into());
                                 handle.set_current_view(CurrentView::RepInput);
                             }
+
+                            //Audio
                             let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
                             sink.borrow_mut().append(boing);
+                            sink.borrow_mut().play()
 
                         } else if !*is_running_deep.borrow() {
                             timer_clone.stop();
