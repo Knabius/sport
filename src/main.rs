@@ -96,15 +96,14 @@ fn change_interval(floor: SharedString, ceil: SharedString) {
 }
 
 fn pick_random_exercise(exercises: Vec<String>) -> String {
-    //FIXME doubles funktioniert noch nicht
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut exercises: Vec<String> = exercises;
     let doubles: bool = doc["doubles"].as_bool().unwrap();
-    let last_exercise: String = doc["last_exercise"].to_string();
+    let last_exercise: String = doc["last_exercise"].as_str().unwrap().to_string();
 
-    if !doubles && exercises.len() > 1{
+    if !doubles && exercises.len() > 1 {
         if let Some(index) = exercises.iter().position(|x| *x == last_exercise) {
             exercises.remove(index);
         }
@@ -352,9 +351,13 @@ fn main() {
 
     ui.on_add_exercise(move |name:SharedString, exercise_type:SharedString| {
         add_exercise(name.as_str(), &exercise_type.as_str());
-
+        
         if let Some(handle) = ui_handle_add_exercise.upgrade() {
-            handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(get_exercise_settings())));
+            let exercise_structs: Vec<Exercise> = get_exercise_settings();
+            let exercise_structs_clone = exercise_structs.clone();
+            handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(exercise_structs)));
+            let exercise_names: Vec<slint::SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
+            handle.set_exercise_names(slint::ModelRc::new(slint::VecModel::from(exercise_names)));
         }
     });
 
@@ -378,4 +381,3 @@ fn main() {
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können
 //TODO prioritize
-//FIXME nach hinzufügen von übung muss übung auch in add reps
