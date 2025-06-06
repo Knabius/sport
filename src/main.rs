@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
 use toml_edit::{DocumentMut, Item, Table, value};
 use std::fs;
@@ -12,7 +12,7 @@ use rodio::{Decoder, OutputStream, Sink, Source};
 use chrono::Local;
 
 const PATH_TO_CONFIG: &str = "resources/config.toml";
-const PATH_TO_DATA: &str = "resources/exercise_data.toml";
+const PATH_TO_DATA: &str =   "resources/exercise_data.toml";
 const PATH_TO_CHRONO: &str = "resources/chronological_data.txt";
 const VOLUME: f32 = 0.3;
 
