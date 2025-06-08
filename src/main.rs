@@ -1,7 +1,8 @@
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
-use toml_edit::{DocumentMut, Item, Table, value};
+use toml_edit::{value, DocumentMut, Item, Table, TableLike, Entry};
 use std::fs;
+use std::thread::current;
 use std::time::Instant;
 use slint::{SharedString, Timer, TimerMode, ToSharedString};
 use std::rc::Rc;
@@ -35,7 +36,8 @@ fn add_exercise(exercise: &str, exercise_type: &str) {
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
     
     doc["exercises"][exercise]["type"] = value(exercise_type);
-    doc["exercises"][exercise]["profiles"]["normal"] = value(true);
+    let current_profile: String = doc["current_profile"].as_str().unwrap().to_string();
+    doc["exercises"][exercise]["profiles"][current_profile] = value(true);
     
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
@@ -120,10 +122,12 @@ fn get_exercises() -> Vec<String> {
     let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut exercises: Vec<String> = Vec::new();
-
+    let current_profile: &str = &doc["current_profile"].as_str().unwrap();
+    
+    
     if let Some(exercises_table) = doc.get("exercises").and_then(|t| t.as_table()) {
         for (exercise_name, exercise_data) in exercises_table.iter() {
-            if let Some(status) = exercise_data.get("profiles").unwrap().get("normal") {
+            if let Some(status) = exercise_data.get("profiles").unwrap().get(current_profile) {
                 if status.as_bool().unwrap() == true {
                     exercises.push(String::from(exercise_name));
                 }
@@ -179,10 +183,11 @@ fn get_exercise_settings() -> Vec<Exercise> {
 
     let mut exercises: Vec<String>  = Vec::new();
     let mut activations: Vec<bool> = Vec::new();
+    let current_profile: &str = doc["current_profile"].as_str().unwrap();
 
     if let Some(exercises_table) = doc.get("exercises").and_then(|t| t.as_table()) {
         for (exercise_name, exercise_data) in exercises_table.iter() {
-            if let Some(status) = exercise_data.get("profiles").unwrap().get("normal").unwrap().as_bool() {
+            if let Some(status) = exercise_data.get("profiles").unwrap().get(current_profile).unwrap().as_bool() {
                 exercises.push(String::from(exercise_name));
                 activations.push(status);
             }
@@ -199,9 +204,10 @@ fn get_exercise_settings() -> Vec<Exercise> {
 fn set_exercise_activation(exercise_name: slint::SharedString) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    let current_profile: String = doc["current_profile"].as_str().unwrap().to_string();
 
-    let val: bool = doc["exercises"][exercise_name.as_str()]["profiles"]["normal"].as_bool().unwrap();
-    doc["exercises"][exercise_name.as_str()]["profiles"]["normal"] = value(!val);
+    let val: bool = doc["exercises"][exercise_name.as_str()]["profiles"][&current_profile].as_bool().unwrap();
+    doc["exercises"][exercise_name.as_str()]["profiles"][&current_profile] = value(!val);
 
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
@@ -219,6 +225,48 @@ fn remove_exercise(exercise: &str) {
 
     if let Some(exercises) = doc.get_mut("exercises").and_then(|item| item.as_table_like_mut()) {
         exercises.remove(exercise);
+    }
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
+fn change_profile(profile: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    doc["current_profile"] = value(profile);
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
+fn add_profile(profile: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    if let Some(exercises) = doc.get_mut("exercises").and_then(|e| e.as_table_mut()) {
+        for (_name, settings) in exercises.iter_mut() {
+            if let Some(profiles_table) = settings.get_mut("profiles").and_then(|p| p.as_table_mut()) {
+                profiles_table.entry(profile).or_insert(value(false));
+            }
+        }
+    }
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
+fn remove_profile(profile: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    if let Some(exercises) = doc.get_mut("exercises").and_then(|e| e.as_table_mut()) {
+        for (_name, settings) in exercises.iter_mut() {
+            if let Some(profiles_table) = settings.get_mut("profiles").and_then(|p| p.as_table_mut()) {
+                match profiles_table.entry(profile) {
+                    Entry::Occupied(key) => {key.remove();}
+                    Entry::Vacant(key) => {}
+                }
+            }
+        }
     }
 
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
@@ -381,3 +429,4 @@ fn main() {
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können
 //TODO prioritize
+

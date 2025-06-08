@@ -2,6 +2,7 @@ floor = 1
 ceil = 5
 doubles = false
 last_exercise = "Stretch"
+current_profile = "normal"
 
 [exercises]
 Pullup = { type = "Reps", profiles = { normal = false } }
