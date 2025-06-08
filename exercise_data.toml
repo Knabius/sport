@@ -3,11 +3,6 @@ reps = 2848
 amount = 77
 max = 50
 
-[Lean]
-reps = 190
-amount = 190
-max = 1
-
 [Abs]
 reps = 207
 amount = 14
@@ -22,11 +17,6 @@ max = 1
 reps = 1246
 amount = 52
 max = 26
-
-[Sally]
-Time = 1392
-amount = 7
-max = 204
 
 [Swing]
 reps = 87

@@ -1,0 +1,104 @@
+component StartButton inherits Rectangle {
+    in-out property <bool> status;
+    in-out property <int> time;
+
+    callback button_pressed();
+
+    height: 300px;
+    width: self.height;
+    background: status ? #026F8F : #B71C1C;
+    border-radius: self.height/2;
+    border-width: 2px;
+    border-color: Colors.black;
+    clip: true;
+    
+    Text {
+        text: status ? "Start" : time + "s";
+        font-size: 40px;
+    }
+
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+        clicked => { 
+            root.button_pressed();
+        }
+    }
+}
+
+export component BasicButton {
+    callback start_pressed(string, string);
+
+    //Interval Inputs
+    in-out property <int> initial_floor_value;
+    in-out property <int> initial_ceil_value;
+
+    //Start Button
+    in-out property <bool> start_button_status: true;
+    in-out property <int> passed_time: 0;
+
+    HorizontalLayout {
+        alignment: center;
+        VerticalLayout {
+            spacing: 20px;
+            alignment: center;
+            HorizontalLayout {
+                alignment: center;
+                start_button := StartButton {
+                    
+                    time: passed_time;
+                    status: start_button_status;
+                    button_pressed => {
+                        root.start_pressed(floor_input.text, ceil_input.text);
+                    }
+                }
+            }
+            HorizontalLayout {
+                alignment: center;
+                spacing: 10px;
+                Rectangle {
+                    width: 150px;
+                    height: 40px;
+                    background: #41667188;
+                    border-radius: 10px;
+                    border-width: 1px;
+                    border-color: Colors.black;
+                    
+                    floor_input := TextInput {
+                        color: #FFFFFF;
+                        font-size: 20px;
+                        input-type: number;
+                        text: initial_floor_value;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+
+                        accepted => {
+                            root.start_pressed(floor_input.text, ceil_input.text);
+                        }
+                    }
+                }
+                Rectangle {
+                    width: 150px;
+                    height: 40px;
+                    background: #41667188;
+                    border-radius: 10px;
+                    border-width: 1px;
+                    border-color: Colors.black;
+                    
+                    ceil_input := TextInput {
+                        color: #FFFFFF;
+                        font-size: 20px;
+                        input-type: number;
+                        text: initial_ceil_value;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+
+                        accepted => {
+                            root.start_pressed(floor_input.text, ceil_input.text);
+                        }
+                    }
+                }            
+            }
+        }
+    }
+}
