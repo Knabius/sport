@@ -235,6 +235,7 @@ component Settings {
     in-out property <bool> add_exercise_vis: false;
     in-out property <bool> remove_exercise_vis: false;
     in-out property <bool> add_reps_vis: false;
+    in-out property <[string]> profile_names;
 
     width: 600px;
     height: 400px;
@@ -544,7 +545,56 @@ component Settings {
             Tab {
                 title: "Profiles";
                 Rectangle {
-    
+                    ListView {
+                        for data[i] in profile_names:
+                        Rectangle {
+                            width: 205px;
+                            height: 40px;
+                            border-width: 5px;
+                            padding: 10px;
+                            
+                            HorizontalBox {
+                                alignment: center;
+
+                                Rectangle {
+                                    width: remove_exercise_vis ? 160px : 200px;
+                                    height: 35px;
+                                    border-width: 1.5px;
+                                    border-radius: 2px;
+                                    border-color: #6b6868;
+                                    animate width {
+                                         easing: ease-in;
+                                         duration: 300ms;
+                                    }
+                
+                                    HorizontalBox {
+                                        Text {
+                                            text: data;
+                                            font-size: 16px;
+                                        }
+                                    }
+                                }
+                                
+                                if remove_exercise_vis:
+                                Rectangle {
+                                    width: 30px;
+                                    height: 30px;
+                                    background: #026F8F;
+                                    border-radius: 2px;
+
+                                    Text {
+                                        text: "-";
+                                    }
+
+                                    TouchArea {
+                                        clicked => {
+                                            remove_exercise(exercises[i].name);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -581,6 +631,7 @@ export component MainWindow inherits Window {
     in-out property <bool> setting_general_doubles: true;
     in-out property <[Exercise]> exercises;
     in-out property <[string]> exercise_names;
+    in_out property <[string]> profile_names;
 
     width: 1200px;
     height: 800px;
@@ -623,6 +674,7 @@ export component MainWindow inherits Window {
         setting_general_doubles: setting_general_doubles;
         exercises: exercises;
         exercise_names: exercise_names;
+        profile_names: profile_names;
         changed_general(doubles) => {
             changed_general_settings(doubles);
         }

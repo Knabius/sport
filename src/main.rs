@@ -1,10 +1,10 @@
-#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+//#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
 use toml_edit::{value, DocumentMut, Item, Table, TableLike, Entry};
 use std::fs;
 use std::thread::current;
 use std::time::Instant;
-use slint::{SharedString, Timer, TimerMode, ToSharedString};
+use slint::{SharedString, Timer, TimerMode, ToSharedString, ModelRc, VecModel, Weak};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fs::{File, OpenOptions};
@@ -12,9 +12,9 @@ use std::io::{BufReader, Write};
 use rodio::{Decoder, OutputStream, Sink, Source};
 use chrono::Local;
 
-const PATH_TO_CONFIG: &str = "resources/config.toml";
-const PATH_TO_DATA: &str =   "resources/exercise_data.toml";
-const PATH_TO_CHRONO: &str = "resources/chronological_data.txt";
+const PATH_TO_CONFIG: &str = "config.toml";
+const PATH_TO_DATA: &str =   "exercise_data.toml";
+const PATH_TO_CHRONO: &str = "chronological_data.txt";
 const VOLUME: f32 = 0.3;
 
 slint::slint! {export { MainWindow } from "src/ui.slint";}
@@ -201,7 +201,7 @@ fn get_exercise_settings() -> Vec<Exercise> {
     items
 }
 
-fn set_exercise_activation(exercise_name: slint::SharedString) {
+fn set_exercise_activation(exercise_name: SharedString) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
     let current_profile: String = doc["current_profile"].as_str().unwrap().to_string();
@@ -272,10 +272,21 @@ fn remove_profile(profile: &str) {
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
+fn get_profile_names() -> Option<Vec<SharedString>> {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).ok()?;
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().ok()?;
+
+    let exercises: &Table = doc.get("exercises")?.as_table()?;
+    let profile_inline: &toml_edit::InlineTable = exercises.get_values().iter().next()?.1.as_inline_table()?.get("profiles")?.as_inline_table()?;
+    let profile_names = profile_inline.iter().map(|x| x.0.into()).collect::<Vec<SharedString>>();
+
+    Some(profile_names)
+}
+
 fn main() {
     //Slint
     let ui = MainWindow::new().unwrap();
-    let ui_handle: slint::Weak<MainWindow> = ui.as_weak();
+    let ui_handle: Weak<MainWindow> = ui.as_weak();
 
     //Audio
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
@@ -289,10 +300,11 @@ fn main() {
         handle.set_setting_general_doubles(get_general_settings());
 
         let exercise_structs: Vec<Exercise> = get_exercise_settings();
-        let exercise_structs_clone = exercise_structs.clone();
-        handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(exercise_structs)));
-        let exercise_names: Vec<slint::SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
-        handle.set_exercise_names(slint::ModelRc::new(slint::VecModel::from(exercise_names)));
+        let exercise_structs_clone: Vec<Exercise> = exercise_structs.clone();
+        handle.set_exercises(ModelRc::new(VecModel::from(exercise_structs)));
+        let exercise_names: Vec<SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
+        handle.set_exercise_names(ModelRc::new(VecModel::from(exercise_names)));
+        handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names().unwrap())));
     }
 
     // true => time-loop inaktiv
@@ -303,9 +315,9 @@ fn main() {
     let start_button_status: Rc<RefCell<bool>> = Rc::new(RefCell::new(true));
     let start_button_status_clone: Rc<RefCell<bool>> = start_button_status.clone();
 
-    let ui_handle_save_reps: slint::Weak<MainWindow> = ui_handle.clone();
-    let ui_handle_add_exercise: slint::Weak<MainWindow> = ui_handle.clone();
-    let ui_handle_remove_exercise: slint::Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_save_reps: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_add_exercise: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_remove_exercise: Weak<MainWindow> = ui_handle.clone();
 
 
     let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
@@ -313,7 +325,7 @@ fn main() {
 
     let sink_clone: Rc<RefCell<Sink>> = sink.clone();
 
-    ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
+    ui.on_start_pressed(move |floor: SharedString, ceil: SharedString| {
 
         if !get_exercises().is_empty() {
             if *start_button_status_clone.borrow() == true {
@@ -335,7 +347,7 @@ fn main() {
                     *is_running_clone.borrow_mut() = true;
                     let is_running_deep: Rc<RefCell<bool>> = is_running_clone.clone();
                     let start_button_status_deep: Rc<RefCell<bool>> = start_button_status_clone.clone();
-                    let ui_handle_deep: slint::Weak<MainWindow> = ui_handle.clone();
+                    let ui_handle_deep: Weak<MainWindow> = ui_handle.clone();
 
                     let sink: Rc<RefCell<Sink>> = sink.clone();
 
@@ -381,7 +393,7 @@ fn main() {
         }
     });
 
-    ui.on_save_reps(move |reps: slint::SharedString| {
+    ui.on_save_reps(move |reps: SharedString| {
         if let Some(handle) = ui_handle_save_reps.upgrade() {
             handle.set_current_view(CurrentView::BasicButton);
         }
@@ -393,7 +405,7 @@ fn main() {
         set_general_settings(setting_doubles);
     });
 
-    ui.on_changed_activation_settings(move |name: slint::SharedString| {
+    ui.on_changed_activation_settings(move |name: SharedString| {
         set_exercise_activation(name);
     });
 
@@ -403,9 +415,9 @@ fn main() {
         if let Some(handle) = ui_handle_add_exercise.upgrade() {
             let exercise_structs: Vec<Exercise> = get_exercise_settings();
             let exercise_structs_clone = exercise_structs.clone();
-            handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(exercise_structs)));
-            let exercise_names: Vec<slint::SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
-            handle.set_exercise_names(slint::ModelRc::new(slint::VecModel::from(exercise_names)));
+            handle.set_exercises(ModelRc::new(VecModel::from(exercise_structs)));
+            let exercise_names: Vec<SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
+            handle.set_exercise_names(ModelRc::new(VecModel::from(exercise_names)));
         }
     });
 
@@ -413,7 +425,7 @@ fn main() {
         remove_exercise(name.as_str());
 
         if let Some(handle) = ui_handle_remove_exercise.upgrade() {
-            handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(get_exercise_settings())));
+            handle.set_exercises(ModelRc::new(VecModel::from(get_exercise_settings())));
         }
     });
 
