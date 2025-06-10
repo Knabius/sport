@@ -3,6 +3,7 @@ import { RepInput } from "RepInput.slint";
 import { BasicButton } from "BasicButton.slint";
 import { SettingsButton } from "SettingsButton.slint";
 import { Settings, Exercise } from "Settings.slint";
+import { Theme } from "Theme.slint";
 
 //Enums
 enum CurrentView {
@@ -20,6 +21,9 @@ export component MainWindow inherits Window {
     callback add_exercise(string, string);
     callback remove_exercise(string);
     callback add_reps(string, string);
+    callback add_profile(string);
+    callback remove_profile(string);
+    callback change_profile(string);
     
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
@@ -46,6 +50,7 @@ export component MainWindow inherits Window {
     width: 1200px;
     height: 800px;
     title: "Sport-Tracker";
+    background: Theme.background_color;
 
     RepInput {
         visible: current_view == CurrentView.RepInput;
@@ -99,6 +104,15 @@ export component MainWindow inherits Window {
         }
         add_reps(name, reps) => {
             add_reps(name, reps);
+        }
+        add_profile(name) => {
+            add_profile(name);
+        }
+        remove_profile(name) => {
+            remove_profile(name);
+        }
+        change_profile(name) => {
+            change_profile(name);
         }
     }
 }

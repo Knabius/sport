@@ -1,3 +1,5 @@
+import { Theme } from "Theme.slint";
+ 
 export component SettingsButton {
     callback open_settings();
 
@@ -7,12 +9,11 @@ export component SettingsButton {
         height: 50px;
         x: -595px;
         y: -395px;
-        border-width: 2px;
-        border-color: Colors.black;
         
         Image {
             width: parent.width;
             height: parent.height;
+            colorize: Theme.accent;
             source: @image-url("resources/icon_menu.png");
         }
 

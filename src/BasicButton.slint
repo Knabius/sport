@@ -1,3 +1,5 @@
+import { Theme } from "Theme.slint";
+
 component StartButton inherits Rectangle {
     in-out property <bool> status;
     in-out property <int> time;
@@ -6,15 +8,14 @@ component StartButton inherits Rectangle {
 
     height: 300px;
     width: self.height;
-    background: status ? #026F8F : #B71C1C;
+    background: status ? Theme.accent : Theme.negative_accent;
     border-radius: self.height/2;
-    border-width: 2px;
-    border-color: Colors.black;
     clip: true;
     
     Text {
         text: status ? "Start" : time + "s";
         font-size: 40px;
+        font-family: "Inter";
     }
 
     TouchArea {
@@ -59,18 +60,19 @@ export component BasicButton {
                 Rectangle {
                     width: 150px;
                     height: 40px;
-                    background: #41667188;
+                    background: Theme.container1;
                     border-radius: 10px;
                     border-width: 1px;
-                    border-color: Colors.black;
+                    border-color: Theme.border_color;
                     
                     floor_input := TextInput {
-                        color: #FFFFFF;
+                        color: Theme.font_color_light;
                         font-size: 20px;
                         input-type: number;
                         text: initial_floor_value;
                         horizontal-alignment: center;
                         vertical-alignment: center;
+                        font-family: "Inter";
 
                         accepted => {
                             root.start_pressed(floor_input.text, ceil_input.text);
@@ -80,18 +82,19 @@ export component BasicButton {
                 Rectangle {
                     width: 150px;
                     height: 40px;
-                    background: #41667188;
+                    background: Theme.container1;
                     border-radius: 10px;
                     border-width: 1px;
-                    border-color: Colors.black;
+                    border-color: Theme.border_color;
                     
                     ceil_input := TextInput {
-                        color: #FFFFFF;
+                        color: Theme.font_color_light;
                         font-size: 20px;
                         input-type: number;
                         text: initial_ceil_value;
                         horizontal-alignment: center;
                         vertical-alignment: center;
+                        font-family: "Inter";
 
                         accepted => {
                             root.start_pressed(floor_input.text, ceil_input.text);

@@ -1,4 +1,5 @@
 import { HorizontalBox, VerticalBox, TabWidget, ComboBox, Switch, ListView } from "std-widgets.slint";
+import { Theme } from "Theme.slint";
 
 //Structs
 export struct Exercise {
@@ -12,6 +13,9 @@ export component Settings {
     callback add_exercise(string, string);
     callback remove_exercise(string);
     callback add_reps(string, string);
+    callback add_profile(string);
+    callback remove_profile(string);
+    callback change_profile(string);
 
     in property <bool> setting_general_doubles;
     in-out property <[Exercise]> exercises;
@@ -20,6 +24,8 @@ export component Settings {
     in-out property <bool> remove_exercise_vis: false;
     in-out property <bool> add_reps_vis: false;
     in-out property <[string]> profile_names;
+    in-out property <bool> add_profile_vis: false;
+    in-out property <bool> remove_profile_vis: false;
 
     width: 600px;
     height: 400px;
@@ -28,14 +34,13 @@ export component Settings {
         y: -140px;
         width: 200px;
         height: 80px;
-        background: add_reps_vis ? #B71C1C : #026F8F;
+        background: add_reps_vis ? Theme.negative_accent : Theme.accent;
         border-radius: 5px;
-        border-width: 2px;
-        border-color: #000000;
         
         Text {
             text: "Add Reps";
             font-size: 30px;
+            font-family: "Inter";
         }
 
         TouchArea {
@@ -51,7 +56,8 @@ export component Settings {
         visible: add_reps_vis;
         width: 400px;
         height: 300px;
-        border-color: #6b6868;
+        background: Theme.container1;
+        border-color: Theme.border_color;
         border-width: 1.5px;
         border-radius: 2px;
 
@@ -67,18 +73,27 @@ export component Settings {
 
             HorizontalBox {
                 alignment: center;
-                add_reps_input := TextInput {
-                    text: "Reps";
-                    font-size: 20px;
+                Rectangle {
+                    background: Theme.container2;
                     width: 200px;
-                    horizontal-alignment: center;
-    
-                    accepted => {
-                        add_reps(add_rep_box.current-value, add_reps_input.text);
-                        add_reps_vis = !add_reps_vis;
+                    height: 35px;
+                    border-radius: 3px;
+                    border-width: 1.5px;
+                    border-color: Theme.border_color;
+                    add_reps_input := TextInput {
+                        text: "Reps";
+                        font-size: 20px;
+                        font-family: "Inter";
+                        width: 200px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+        
+                        accepted => {
+                            add_reps(add_rep_box.current-value, add_reps_input.text);
+                            add_reps_vis = !add_reps_vis;
+                        }
                     }
                 }
-                
             }
 
             HorizontalBox {
@@ -87,14 +102,13 @@ export component Settings {
                 Rectangle {
                     width: 80px;
                     height: 40px;
-                    background: #026F8F;
+                    background: Theme.accent;
                     border-radius: 3px;
-                    border-width: 1px;
-                    border-color: #000000;
                     
                     Text {
                         text: "Add";
                         font-size: 20px;
+                        font-family: "Inter";
                     }
         
                     TouchArea {
@@ -112,9 +126,9 @@ export component Settings {
         visible: !add_reps_vis;
         border-radius: 2px;
         border-width: 1px;
-        border-color: #6b6868;
+        border-color: Theme.border_color;
+        background: Theme.container1;
         TabWidget {
-            //TODO einzelne Tabs in files
             Tab {
                 title: "General";
                 Rectangle {
@@ -131,11 +145,13 @@ export component Settings {
                                 height: 35px;
                                 border-width: 1.5px;
                                 border-radius: 2px;
-                                border-color: #6b6868;
+                                border-color: Theme.border_color;
+                                background: Theme.container2;
                                 HorizontalBox {
                                     Text {
                                         text: "Doubles";
                                         font-size: 16px;
+                                        font-family: "Inter";
                                     }
                 
                                     doubles := Switch {
@@ -161,7 +177,7 @@ export component Settings {
                         Rectangle {
                             height: 30px;
                             width: 30px;
-                            background: add_exercise_vis ? #B71C1C : #026F8F;
+                            background: add_exercise_vis ? Theme.negative_accent : Theme.accent;
                             border-radius: 2px;
                             
                             Image {
@@ -181,7 +197,7 @@ export component Settings {
                         Rectangle {
                             height: 30px;
                             width: 30px;
-                            background: remove_exercise_vis ? #B71C1C : #026F8F;
+                            background: remove_exercise_vis ? Theme.negative_accent : Theme.accent;
                             border-radius: 2px;
 
                             Image {
@@ -216,7 +232,8 @@ export component Settings {
                                     height: 35px;
                                     border-width: 1.5px;
                                     border-radius: 2px;
-                                    border-color: #6b6868;
+                                    border-color: Theme.border_color;
+                                    background: Theme.container2;
                                     animate width {
                                          easing: ease-in;
                                          duration: 300ms;
@@ -226,6 +243,7 @@ export component Settings {
                                         Text {
                                             text: data.name;
                                             font-size: 16px;
+                                            font-family: "Inter";
                                         }
             
                                         Switch {
@@ -242,11 +260,13 @@ export component Settings {
                                 Rectangle {
                                     width: 30px;
                                     height: 30px;
-                                    background: #026F8F;
+                                    background: Theme.accent;
                                     border-radius: 2px;
 
-                                    Text {
-                                        text: "-";
+                                    Image {
+                                        width: parent.width*0.6;
+                                        height: parent.height*0.5;
+                                        source: @image-url("resources/icon_minus.png");
                                     }
 
                                     TouchArea {
@@ -266,7 +286,7 @@ export component Settings {
                         HorizontalBox {
                             alignment: center;
                             Rectangle {
-                                background: #4b4949;
+                                background: Theme.container1;
                                 width: 300px;
                                 height: 200px;
                                 
@@ -278,12 +298,13 @@ export component Settings {
                                         alignment: center;
 
                                         add_exercise_name := TextInput {
-                                            color: Colors.white;
+                                            color: Theme.font_color_light;
                                             font-size: 20px;
                                             text: "Name";
                                             input-type: text;
                                             horizontal-alignment: center;
                                             vertical-alignment: center;
+                                            font-family: "Inter";
 
                                             accepted => {
                                                 add_exercise(add_exercise_name.text, combo.current-value);
@@ -310,14 +331,15 @@ export component Settings {
                                         Rectangle {
                                             width: 80px;
                                             height: 40px;
-                                            background: #026F8F;
+                                            background: Theme.accent;
                                             border-radius: 10px;
                                             border-width: 1px;
-                                            border-color: Colors.black;
+                                            border-color: Theme.border_color;
                                 
                                             Text {
                                                 text: "Save";
                                                 font-size: 20px;
+                                                font-family: "Inter";
                                             }
                             
                                             TouchArea {
@@ -332,56 +354,173 @@ export component Settings {
                             }
                         }
                     }
-                    
                 }
             }
             Tab {
                 title: "Profiles";
-                Rectangle {
-                    ListView {
-                        for data[i] in profile_names:
+                VerticalBox {
+                    HorizontalBox {
+                        alignment: center;
+                        spacing: 15px;
                         Rectangle {
-                            width: 205px;
-                            height: 40px;
-                            border-width: 5px;
-                            padding: 10px;
+                            height: 30px;
+                            width: 30px;
+                            background: add_profile_vis ? Theme.negative_accent : Theme.accent;
+                            border-radius: 2px;
                             
-                            HorizontalBox {
-                                alignment: center;
+                            Image {
+                                width: parent.width*0.6;
+                                height: parent.height*0.6;
+                                source: @image-url("resources/icon_plus.png");
+                            }
+        
+                            TouchArea {
+                                enabled: !remove_profile_vis;
+                                clicked => {
+                                    add_profile_vis = !add_profile_vis;
+                                }
+                            }
+                        }
+                        
+                        Rectangle {
+                            height: 30px;
+                            width: 30px;
+                            background: remove_profile_vis ? Theme.negative_accent : Theme.accent;
+                            border-radius: 2px;
+        
+                            Image {
+                                width: parent.width*0.6;
+                                height: parent.height*0.5;
+                                source: @image-url("resources/icon_minus.png");
+                            }
+        
+                            TouchArea {
+                                enabled: !add_profile_vis;
+                                clicked => {
+                                    remove_profile_vis = !remove_profile_vis;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if !add_profile_vis:
+                    Rectangle {
+                        ListView {
+                            for data[i] in profile_names:
+                            Rectangle {
+                                width: 205px;
+                                height: 40px;
+                                border-width: 5px;
+                                padding: 10px;
+                                
+                                HorizontalBox {
+                                    alignment: center;
+    
+                                    Rectangle {
+                                        width: remove_profile_vis ? 160px : 200px;
+                                        height: 35px;
+                                        border-width: 1.5px;
+                                        border-radius: 2px;
+                                        border-color: Theme.border_color;
+                                        background: Theme.container2;
+                                        animate width {
+                                             easing: ease-in;
+                                             duration: 300ms;
+                                        }
+                    
+                                        HorizontalBox {
+                                            Text {
+                                                text: data;
+                                                font-size: 16px;
+                                                font-family: "Inter";
+                                            }
+                                        }
 
-                                Rectangle {
-                                    width: remove_exercise_vis ? 160px : 200px;
-                                    height: 35px;
-                                    border-width: 1.5px;
-                                    border-radius: 2px;
-                                    border-color: #6b6868;
-                                    animate width {
-                                         easing: ease-in;
-                                         duration: 300ms;
+                                        TouchArea {
+                                            clicked => {
+                                                change_profile(data);
+                                            }
+                                        }
                                     }
-                
-                                    HorizontalBox {
-                                        Text {
-                                            text: data;
-                                            font-size: 16px;
+                                    
+                                    if remove_profile_vis:
+                                    Rectangle {
+                                        width: 30px;
+                                        height: 30px;
+                                        background: Theme.accent;
+                                        border-radius: 2px;
+    
+                                        Image {
+                                            width: parent.width*0.6;
+                                            height: parent.height*0.5;
+                                            source: @image-url("resources/icon_minus.png");
+                                        }
+    
+                                        TouchArea {
+                                            clicked => {
+                                                remove_profile(profile_names[i]);
+                                            }
                                         }
                                     }
                                 }
-                                
-                                if remove_exercise_vis:
-                                Rectangle {
-                                    width: 30px;
-                                    height: 30px;
-                                    background: #026F8F;
-                                    border-radius: 2px;
+                            }
+                        }
+                    }
 
-                                    Text {
-                                        text: "-";
+                    if add_profile_vis:
+                    VerticalBox {
+                        height: add_profile_vis ? 0px : parent.height;
+                        alignment: center;
+                        HorizontalBox {
+                            alignment: center;
+                            Rectangle {
+                                background: Theme.container1;
+                                width: 300px;
+                                height: 200px;
+                                
+                                VerticalBox {
+                                    spacing: 0px;
+                                    alignment: center;
+
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        add_profile_name := TextInput {
+                                            color: Theme.font_color_light;
+                                            font-size: 20px;
+                                            text: "Name";
+                                            input-type: text;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                            font-family: "Inter";
+
+                                            accepted => {
+                                                add_profile(add_profile_name.text);
+                                                add_profile_vis = !add_profile_vis;
+                                            }
+                                        }
                                     }
 
-                                    TouchArea {
-                                        clicked => {
-                                            remove_exercise(exercises[i].name);
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        Rectangle {
+                                            width: 80px;
+                                            height: 40px;
+                                            background: Theme.accent;
+                                
+                                            Text {
+                                                text: "Save";
+                                                font-size: 20px;
+                                                font-family: "Inter";
+                                            }
+                            
+                                            TouchArea {
+                                                clicked => {
+                                                    add_profile(add_profile_name.text);
+                                                    add_profile_vis = !add_profile_vis;
+                                                }
+                                            }
                                         }
                                     }
                                 }

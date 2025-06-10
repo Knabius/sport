@@ -1,73 +1,86 @@
+import { Theme } from "Theme.slint";
+import "resources/Inter_18pt-Light.ttf";
+
 export component RepInput inherits Rectangle {
     callback save_reps(string);
 
     in property <string> exercise;
 
-    VerticalLayout {
-        alignment: center;
-        spacing: 5px;
-        HorizontalLayout {
+    Rectangle {
+        background: Theme.container1;
+        VerticalLayout {
             alignment: center;
-            Text {
-                text: exercise + "s";
-                font-size: 40px;
-                color: #026F8F;
+            spacing: 5px;
+            HorizontalLayout {
+                alignment: center;
+                Text {
+                    text: exercise + "s";
+                    font-size: 40px;
+                    font-family: "Inter";
+                    color: Theme.accent;
+                }
             }
-        }
-        HorizontalLayout {
-            alignment: center;
-            padding: 10px;
-            Text {
-                text: "Enter amount of completed reps below";
-                font-size: 15px;
+            HorizontalLayout {
+                alignment: center;
+                padding: 10px;
+                Text {
+                    text: "Enter amount of completed reps below";
+                    //FIXME ändern wenn exercise typ time ist
+                    font-size: 15px;
+                    font-family: "Inter";
+                    color: Theme.font_color_light;
+                }
             }
-        }
-        HorizontalLayout {
-            alignment: center;
-            Rectangle {
-                width: 150px;
-                height: 40px;
-                background: #41667188;
-                border-radius: 10px;
-                border-width: 1px;
-                border-color: Colors.black;
-        
-                reps := TextInput {
-                    color: Colors.white;
-                    font-size: 20px;
-                    text: "0";
-                    input-type: number;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-
-                    accepted => {
-                        root.save_reps(reps.text);
-                        reps.text = "0";
+            HorizontalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 150px;
+                    height: 40px;
+                    background: Theme.background_color;
+                    border-radius: 3px;
+                    border-width: 1.5px;
+                    border-color: Theme.border_color;
+            
+                    reps := TextInput {
+                        color: Theme.font_color_light;
+                        font-size: 20px;
+                        text: "0";
+                        font-family: "Inter";
+                        input-type: number;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+    
+                        accepted => {
+                            root.save_reps(reps.text);
+                            reps.text = "0";
+                        }
                     }
                 }
             }
-        }
-        HorizontalLayout {
-            alignment: center;
-            Rectangle {
-                width: 80px;
-                height: 40px;
-                background: #026F8F;
-                border-radius: 10px;
-                border-width: 1px;
-                border-color: Colors.black;
+            HorizontalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 80px;
+                    height: 40px;
+                    background: Theme.accent;
+                    border-radius: 5px;
+                    border-width: 1px;
+        
+                    Text {
+                        text: "Save";
+                        font-size: 20px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        font-family: "Inter";
+                    }
     
-                Text {
-                    text: "Save";
-                    font-size: 20px;
-                }
-
-                TouchArea {
-                    width: parent.width;
-                    height: parent.height;
-                    clicked => { 
-                        root.save_reps(reps.text);
-                        reps.text = "0";
+                    TouchArea {
+                        width: parent.width;
+                        height: parent.height;
+                        clicked => { 
+                            root.save_reps(reps.text);
+                            reps.text = "0";
+                        }
                     }
                 }
             }

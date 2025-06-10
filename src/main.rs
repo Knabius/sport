@@ -1,4 +1,4 @@
-#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+//#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
 use toml_edit::{value, DocumentMut, Item, Table, TableLike, Entry};
 use std::fs;
@@ -12,12 +12,12 @@ use std::io::{BufReader, Write};
 use rodio::{Decoder, OutputStream, Sink, Source};
 use chrono::Local;
 
-const PATH_TO_CONFIG: &str = "config.toml";
-const PATH_TO_DATA: &str =   "exercise_data.toml";
-const PATH_TO_CHRONO: &str = "chronological_data.txt";
+const PATH_TO_CONFIG: &str = "src/resources/config.toml";
+const PATH_TO_DATA: &str =   "src/resources/exercise_data.toml";
+const PATH_TO_CHRONO: &str = "src/resources/chronological_data.txt";
 const VOLUME: f32 = 0.3;
 
-slint::slint! {export { MainWindow } from "src/ui.slint";}
+slint::slint! {export { MainWindow } from "src/main.slint";}
 
 fn add_exercise(exercise: &str, exercise_type: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
@@ -243,6 +243,7 @@ fn add_profile(profile: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
+    //FIXME profile wird nicht hinzugefügt
     if let Some(exercises) = doc.get_mut("exercises").and_then(|e| e.as_table_mut()) {
         for (_name, settings) in exercises.iter_mut() {
             if let Some(profiles_table) = settings.get_mut("profiles").and_then(|p| p.as_table_mut()) {
@@ -258,6 +259,8 @@ fn remove_profile(profile: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
+    //FIXME macht noch nichts
+    
     if let Some(exercises) = doc.get_mut("exercises").and_then(|e| e.as_table_mut()) {
         for (_name, settings) in exercises.iter_mut() {
             if let Some(profiles_table) = settings.get_mut("profiles").and_then(|p| p.as_table_mut()) {
@@ -365,7 +368,7 @@ fn main() {
                             }
 
                             //Audio
-                            let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
+                            let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("src/resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
                             sink.borrow_mut().append(boing);
                             sink.borrow_mut().play()
 
@@ -433,11 +436,25 @@ fn main() {
         add_reps(name.as_str(), reps.as_str().parse::<i32>().unwrap());
     });
 
+    ui.on_add_profile(move |name: SharedString| {
+        println!("{}",name.as_str());
+        add_profile(name.as_str());
+        //TODO profile wieder reinschiben damit angezeigt
+        //könnte aber auch in slint machen so wie die exercises löschen
+    });
+
+    ui.on_remove_profile(move |name: SharedString| {
+        remove_profile(name.as_str());
+    });
+
+    ui.on_change_profile(move |name: SharedString| {
+        change_profile(name.as_str());
+    });
+
     ui.run().unwrap();
 }
 
 //TODO profiles
-//TODO Main Button mit Enter auslösen
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können
 //TODO prioritize
