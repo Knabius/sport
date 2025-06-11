@@ -2,7 +2,6 @@
 
 use toml_edit::{value, DocumentMut, Entry, InlineEntry, Item, Table, TableLike};
 use std::fs;
-use std::thread::current;
 use std::time::Instant;
 use slint::{SharedString, Timer, TimerMode, ToSharedString, ModelRc, VecModel, Weak};
 use std::rc::Rc;
@@ -260,6 +259,11 @@ fn add_profile(profile: &str) {
 fn remove_profile(profile: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    let current_profile: &str = doc["current_profile"].as_str().unwrap();
+    if current_profile == profile {
+        return;
+    }
     
     if let Some(exercises) = doc.get_mut("exercises").and_then(|e| e.as_table_mut()) {
         for (_name, settings) in exercises.iter_mut() {
@@ -324,6 +328,7 @@ fn main() {
     let ui_handle_remove_exercise: Weak<MainWindow> = ui_handle.clone();
     let ui_handle_add_profile: Weak<MainWindow> = ui_handle.clone();
     let ui_handle_remove_profile: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_change_profile: Weak<MainWindow> = ui_handle.clone();
 
     let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
     let chosen_exercise_rep_clone: Rc<RefCell<String>> = chosen_exercise.clone();
@@ -456,11 +461,18 @@ fn main() {
 
     ui.on_change_profile(move |name: SharedString| {
         change_profile(name.as_str());
+
+        if let Some(handle) = ui_handle_change_profile.upgrade() {
+            let exercise_structs: Vec<Exercise> = get_exercise_settings();
+            let exercise_structs_clone = exercise_structs.clone();
+            handle.set_exercises(ModelRc::new(VecModel::from(exercise_structs)));
+        }
     });
 
     ui.run().unwrap();
 }
 
+//TODO hovereffekte für buttons
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können
 //TODO prioritize
