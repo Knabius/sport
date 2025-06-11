@@ -297,18 +297,26 @@ export component Settings {
                                     HorizontalBox {
                                         alignment: center;
 
-                                        add_exercise_name := TextInput {
-                                            color: Theme.font_color_light;
-                                            font-size: 20px;
-                                            text: "Name";
-                                            input-type: text;
-                                            horizontal-alignment: center;
-                                            vertical-alignment: center;
-                                            font-family: "Inter";
+                                        Rectangle {
+                                            width: 200px;
+                                            height: 35px;
+                                            border-radius: 3px;
+                                            border-width: 1.5px;
+                                            border-color: Theme.border_color;
+                                            background: Theme.container2;
 
-                                            accepted => {
-                                                add_exercise(add_exercise_name.text, combo.current-value);
-                                                add_exercise_vis = !add_exercise_vis;
+                                            add_exercise_name := TextInput {
+                                                color: Theme.font_color_light;
+                                                font-size: 20px;
+                                                text: "Name";
+                                                font-family: "Inter";
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+    
+                                                accepted => {
+                                                    add_exercise(add_exercise_name.text, combo.current-value);
+                                                    add_exercise_vis = !add_exercise_vis;
+                                                }
                                             }
                                         }
                                     }
@@ -484,19 +492,27 @@ export component Settings {
 
                                     HorizontalBox {
                                         alignment: center;
+                                        
+                                        Rectangle {
+                                            width: 200px;
+                                            height: 35px;
+                                            border-radius: 3px;
+                                            border-width: 1.5px;
+                                            border-color: Theme.border_color;
+                                            background: Theme.container2;
 
-                                        add_profile_name := TextInput {
-                                            color: Theme.font_color_light;
-                                            font-size: 20px;
-                                            text: "Name";
-                                            input-type: text;
-                                            horizontal-alignment: center;
-                                            vertical-alignment: center;
-                                            font-family: "Inter";
-
-                                            accepted => {
-                                                add_profile(add_profile_name.text);
-                                                add_profile_vis = !add_profile_vis;
+                                            add_profile_name := TextInput {
+                                                color: Theme.font_color_light;
+                                                font-size: 20px;
+                                                text: "Name";
+                                                font-family: "Inter";
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+    
+                                                accepted => {
+                                                    add_profile(add_profile_name.text);
+                                                    add_profile_vis = !add_profile_vis;
+                                                }
                                             }
                                         }
                                     }

@@ -5032,7 +5032,7 @@ dependencies = [
 
 [[package]]
 name = "sport"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "chrono",
  "fs",
