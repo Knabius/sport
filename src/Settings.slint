@@ -27,6 +27,7 @@ export component Settings {
     in-out property <[string]> profile_names;
     in-out property <bool> add_profile_vis: false;
     in-out property <bool> remove_profile_vis: false;
+    in-out property <int> volume;
 
     width: 600px;
     height: 400px;
@@ -172,7 +173,7 @@ export component Settings {
                                 font-family: "Inter";
                             }
                             Slider {
-                                value: 30;
+                                value: volume;
                                 width: 200px;
                                 changed(value) => {
                                     changed_volume(value);

@@ -3,6 +3,7 @@ ceil = 900
 doubles = false
 last_exercise = "Planche"
 current_profile = "normal"
+volume = 58.0
 
 [exercises]
 Pullup = { type = "Reps", profiles = { normal = false, nigger = false } }

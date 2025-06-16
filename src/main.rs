@@ -1,4 +1,4 @@
-//#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_precision_locc)]
 #![allow(clippy::too_many_lines)]
@@ -15,10 +15,10 @@ use rodio::{Decoder, OutputStream, Sink, Source};
 use chrono::Local;
 
 //REMINDER src/...
-const PATH_TO_CONFIG: &str = "src/resources/config.toml";
-const PATH_TO_DATA: &str =   "src/resources/exercise_data.toml";
-const PATH_TO_CHRONO: &str = "src/resources/chronological_data.txt";
-const PATH_TO_SOUND: &str =  "src/resources/Sound.mp3";
+const PATH_TO_CONFIG: &str = "resources/config.toml";
+const PATH_TO_DATA: &str =   "resources/exercise_data.toml";
+const PATH_TO_CHRONO: &str = "resources/chronological_data.txt";
+const PATH_TO_SOUND: &str =  "resources/Sound.mp3";
 static mut VOLUME: f32 = 0.3;
 
 slint::slint! {export { MainWindow } from "src/main.slint";}
@@ -310,6 +310,22 @@ fn get_current_profile() -> String {
     return doc["current_profile"].as_str().unwrap().to_string();
 }
 
+fn change_volume(volume: i32) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    doc["volume"] = value(volume as f64);
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
+fn get_volume() -> i32 {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    return doc["volume"].as_float().unwrap() as i32;
+}
+
 fn main() {
     //Slint
     let ui = MainWindow::new().unwrap();
@@ -333,6 +349,7 @@ fn main() {
         handle.set_exercise_names(ModelRc::new(VecModel::from(exercise_names)));
         handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names())));
         handle.set_current_profile(get_current_profile().into());
+        handle.set_volume(get_volume());
     }
 
     // true => time-loop inaktiv
@@ -396,7 +413,7 @@ fn main() {
 
                             //Audio
                             unsafe {
-                                let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open(PATH_TO_SOUND).unwrap())).unwrap().amplify(VOLUME);
+                                let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open(PATH_TO_SOUND).unwrap())).unwrap().amplify(VOLUME/100.0);
                                 sink.borrow_mut().append(boing);
                                 sink.borrow_mut().play();
                             }    
@@ -491,13 +508,13 @@ fn main() {
     });
 
     ui.on_changed_volume(move |volume: i32| {
-        unsafe {VOLUME = volume as f32 /100.0;}
+        unsafe {VOLUME = volume as f32;}
+        change_volume(volume);
     });
 
     ui.run().unwrap();
 }
 
-//TODO hovereffekte für buttons
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können
 //TODO prioritize

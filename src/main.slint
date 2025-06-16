@@ -48,6 +48,7 @@ export component MainWindow inherits Window {
     in-out property <[string]> exercise_names;
     in-out property <[string]> profile_names;
     in-out property <string> current_profile;
+    in-out property <int> volume;
 
     width: 1200px;
     height: 800px;
@@ -93,6 +94,7 @@ export component MainWindow inherits Window {
         exercises: exercises;
         exercise_names: exercise_names;
         profile_names: profile_names;
+        volume: volume;
         changed_general(doubles) => {
             changed_general_settings(doubles);
         }
