@@ -7,9 +7,14 @@ component StartButton inherits Rectangle {
 
     callback button_pressed();
 
+    animate background {
+        duration: 150ms;
+        easing: ease-in-out;
+    }
+
     height: 300px;
     width: self.height;
-    background: status ? Theme.accent : Theme.negative_accent;
+    background: status ? (touch.has-hover ? Theme.accent_hovered : Theme.accent): (touch.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent);
     border-radius: self.height/2;
     clip: true;
     
@@ -19,7 +24,7 @@ component StartButton inherits Rectangle {
         font-family: "Inter";
     }
 
-    TouchArea {
+    touch := TouchArea {
         width: parent.width;
         height: parent.height;
         clicked => { 

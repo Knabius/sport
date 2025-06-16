@@ -62,7 +62,7 @@ export component RepInput inherits Rectangle {
                 Rectangle {
                     width: 80px;
                     height: 40px;
-                    background: Theme.accent;
+                    background: touch.has_hover ? Theme.accent_hovered : Theme.accent;
                     border-radius: 5px;
                     border-width: 1px;
         
@@ -74,7 +74,7 @@ export component RepInput inherits Rectangle {
                         font-family: "Inter";
                     }
     
-                    TouchArea {
+                    touch := TouchArea {
                         width: parent.width;
                         height: parent.height;
                         clicked => { 

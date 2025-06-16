@@ -13,11 +13,11 @@ export component SettingsButton {
         Image {
             width: parent.width;
             height: parent.height;
-            colorize: Theme.accent;
+            colorize: touch.has-hover ? Theme.accent_hovered : Theme.accent;
             source: @image-url("resources/icon_menu.png");
         }
 
-        TouchArea {
+        touch := TouchArea {
             clicked => {
                 open_settings();
             }

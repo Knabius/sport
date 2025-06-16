@@ -1,5 +1,5 @@
-floor = 1
-ceil = 5
+floor = 500
+ceil = 900
 doubles = false
 last_exercise = "Planche"
 current_profile = "normal"

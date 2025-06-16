@@ -35,7 +35,7 @@ export component Settings {
         y: -140px;
         width: 200px;
         height: 80px;
-        background: add_reps_vis ? Theme.negative_accent : Theme.accent;
+        background: add_reps_vis ? (touch.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch.has-hover ? Theme.accent_hovered : Theme.accent);
         border-radius: 5px;
         
         Text {
@@ -44,7 +44,7 @@ export component Settings {
             font-family: "Inter";
         }
 
-        TouchArea {
+        touch := TouchArea {
             clicked => {
                 add_reps_vis = !add_reps_vis;
                 add_rep_box.current-index = 0;
@@ -103,7 +103,7 @@ export component Settings {
                 Rectangle {
                     width: 80px;
                     height: 40px;
-                    background: Theme.accent;
+                    background: touch1.has-hover ? Theme.accent_hovered : Theme.accent;
                     border-radius: 3px;
                     
                     Text {
@@ -112,7 +112,7 @@ export component Settings {
                         font-family: "Inter";
                     }
         
-                    TouchArea {
+                    touch1 := TouchArea {
                         clicked => {
                             add_reps(add_rep_box.current-value, add_reps_input.text);
                             add_reps_vis = !add_reps_vis;
@@ -193,7 +193,7 @@ export component Settings {
                         Rectangle {
                             height: 30px;
                             width: 30px;
-                            background: add_exercise_vis ? Theme.negative_accent : Theme.accent;
+                            background: add_exercise_vis ? (touch2.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch2.has-hover ? Theme.accent_hovered : Theme.accent);
                             border-radius: 2px;
                             
                             Image {
@@ -202,7 +202,7 @@ export component Settings {
                                 source: @image-url("resources/icon_plus.png");
                             }
 
-                            TouchArea {
+                            touch2 := TouchArea {
                                 enabled: !remove_exercise_vis;
                                 clicked => {
                                     add_exercise_vis = !add_exercise_vis;
@@ -213,7 +213,7 @@ export component Settings {
                         Rectangle {
                             height: 30px;
                             width: 30px;
-                            background: remove_exercise_vis ? Theme.negative_accent : Theme.accent;
+                            background: remove_exercise_vis ? (touch3.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch3.has-hover ? Theme.accent_hovered : Theme.accent);
                             border-radius: 2px;
 
                             Image {
@@ -222,7 +222,7 @@ export component Settings {
                                 source: @image-url("resources/icon_minus.png");
                             }
 
-                            TouchArea {
+                            touch3 := TouchArea {
                                 enabled: !add_exercise_vis;
                                 clicked => {
                                     remove_exercise_vis = !remove_exercise_vis;
@@ -276,7 +276,7 @@ export component Settings {
                                 Rectangle {
                                     width: 30px;
                                     height: 30px;
-                                    background: Theme.accent;
+                                    background: touch4.has-hover ? Theme.accent_hovered : Theme.accent;
                                     border-radius: 2px;
 
                                     Image {
@@ -285,7 +285,7 @@ export component Settings {
                                         source: @image-url("resources/icon_minus.png");
                                     }
 
-                                    TouchArea {
+                                    touch4 := TouchArea {
                                         clicked => {
                                             remove_exercise(exercises[i].name);
                                         }
@@ -355,7 +355,7 @@ export component Settings {
                                         Rectangle {
                                             width: 80px;
                                             height: 40px;
-                                            background: Theme.accent;
+                                            background: touch5.has-hover ? Theme.accent_hovered : Theme.accent;
                                             border-radius: 10px;
                                             border-width: 1px;
                                             border-color: Theme.border_color;
@@ -366,7 +366,7 @@ export component Settings {
                                                 font-family: "Inter";
                                             }
                             
-                                            TouchArea {
+                                            touch5 := TouchArea {
                                                 clicked => {
                                                     add_exercise(add_exercise_name.text, combo.current-value);
                                                     add_exercise_vis = !add_exercise_vis;
@@ -389,7 +389,7 @@ export component Settings {
                         Rectangle {
                             height: 30px;
                             width: 30px;
-                            background: add_profile_vis ? Theme.negative_accent : Theme.accent;
+                            background: add_profile_vis ? (touch6.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch6.has-hover ? Theme.accent_hovered : Theme.accent);
                             border-radius: 2px;
                             
                             Image {
@@ -398,7 +398,7 @@ export component Settings {
                                 source: @image-url("resources/icon_plus.png");
                             }
         
-                            TouchArea {
+                            touch6 := TouchArea {
                                 enabled: !remove_profile_vis;
                                 clicked => {
                                     add_profile_vis = !add_profile_vis;
@@ -409,7 +409,7 @@ export component Settings {
                         Rectangle {
                             height: 30px;
                             width: 30px;
-                            background: remove_profile_vis ? Theme.negative_accent : Theme.accent;
+                            background: remove_profile_vis ? (touch7.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch7.has-hover ? Theme.accent_hovered : Theme.accent);
                             border-radius: 2px;
         
                             Image {
@@ -418,7 +418,7 @@ export component Settings {
                                 source: @image-url("resources/icon_minus.png");
                             }
         
-                            TouchArea {
+                            touch7 := TouchArea {
                                 enabled: !add_profile_vis;
                                 clicked => {
                                     remove_profile_vis = !remove_profile_vis;
@@ -446,7 +446,7 @@ export component Settings {
                                         border-width: 1.5px;
                                         border-radius: 2px;
                                         border-color: Theme.border_color;
-                                        background: Theme.accent;
+                                        background: touch8.has-hover ? Theme.accent_hovered : Theme.accent;
                                         animate width {
                                             easing: ease-in;
                                             duration: 300ms;
@@ -460,7 +460,7 @@ export component Settings {
                                             }
                                         }
 
-                                        TouchArea {
+                                        touch8 := TouchArea {
                                             clicked => {
                                                 change_profile(data);
                                             }
@@ -471,7 +471,7 @@ export component Settings {
                                     Rectangle {
                                         width: 30px;
                                         height: 30px;
-                                        background: Theme.accent;
+                                        background: touch9.has-hover ? Theme.accent_hovered : Theme.accent;
                                         border-radius: 2px;
     
                                         Image {
@@ -480,7 +480,7 @@ export component Settings {
                                             source: @image-url("resources/icon_minus.png");
                                         }
     
-                                        TouchArea {
+                                        touch9 := TouchArea {
                                             clicked => {
                                                 remove_profile(profile_names[i]);
                                             }
@@ -539,7 +539,7 @@ export component Settings {
                                         Rectangle {
                                             width: 80px;
                                             height: 40px;
-                                            background: Theme.accent;
+                                            background: touch10.has-hover ? Theme.accent_hovered : Theme.accent;
                                 
                                             Text {
                                                 text: "Save";
@@ -547,7 +547,7 @@ export component Settings {
                                                 font-family: "Inter";
                                             }
                             
-                                            TouchArea {
+                                            touch10 := TouchArea {
                                                 clicked => {
                                                     add_profile(add_profile_name.text);
                                                     add_profile_vis = !add_profile_vis;
