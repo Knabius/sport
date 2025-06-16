@@ -7,10 +7,10 @@ fn main() {
         res.set_resource_file("app_icon_path.rc");
         // WICHTIG: Ressourcen kompilieren und linken!
         match res.compile() {
-            Ok(_) => {}
+            Ok(()) => {}
             Err(e) => {
                 // Gib eine Fehlermeldung aus, damit du siehst, wenn etwas schiefgeht
-                eprintln!("Fehler beim Kompilieren der Windows-Ressourcen: {}", e);
+                eprintln!("Fehler beim Kompilieren der Windows-Ressourcen: {e}");
                 std::process::exit(1);
             }
         }

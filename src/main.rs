@@ -1,4 +1,7 @@
-//#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_precision_locc)]
+#![allow(clippy::too_many_lines)]
 
 use toml_edit::{value, DocumentMut, Entry, InlineEntry, Item, Table, TableLike};
 use std::fs;
@@ -12,15 +15,16 @@ use rodio::{Decoder, OutputStream, Sink, Source};
 use chrono::Local;
 
 //REMINDER src/...
-const PATH_TO_CONFIG: &str = "src/resources/config.toml";
-const PATH_TO_DATA: &str =   "src/resources/exercise_data.toml";
-const PATH_TO_CHRONO: &str = "src/resources/chronological_data.txt";
-const PATH_TO_SOUND: &str =  "src/resources/Sound.mp3";
+const PATH_TO_CONFIG: &str = "src/...resources/config.toml";
+const PATH_TO_DATA: &str =   "src/...resources/exercise_data.toml";
+const PATH_TO_CHRONO: &str = "src/...resources/chronological_data.txt";
+const PATH_TO_SOUND: &str =  "src/...resources/Sound.mp3";
 const VOLUME: f32 = 0.3;
 
 slint::slint! {export { MainWindow } from "src/main.slint";}
 
 fn add_exercise(exercise: &str, exercise_type: &str) {
+    //FIXME hinzugefügte muss in alle porofile
     let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
     let mut table: Table = Table::new();
@@ -48,7 +52,7 @@ fn add_reps(exercise: &str, reps: i32) {
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     if let Some(exercise_value) = doc.get(exercise) {
-        let reps: i64 = reps as i64;
+        let reps: i64 = i64::from(reps);
         let mut all_reps: i64 = 0;
         let mut amount: i64 = 0;
         let mut max: i64 = 0;
@@ -76,13 +80,13 @@ fn add_reps(exercise: &str, reps: i32) {
             
             fs::write(PATH_TO_DATA, doc.to_string()).expect("Fehler beim Schreiben!");
 
-            let mut chrono: File = OpenOptions::new().write(true).append(true).create(true).open(PATH_TO_CHRONO).unwrap();
-            writeln!(chrono, "[{}]:{}:{}", Local::now().format("%Y-%m-%d").to_string(),exercise, reps);
+            let mut chrono: File = OpenOptions::new().append(true).create(true).open(PATH_TO_CHRONO).unwrap();
+            writeln!(chrono, "[{}]:{}:{}", Local::now().format("%Y-%m-%d"),exercise, reps);
         }
     }
 }
 
-fn change_interval(floor: SharedString, ceil: SharedString) {
+fn change_interval(floor: &SharedString, ceil: &SharedString) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
@@ -123,13 +127,13 @@ fn get_exercises() -> Vec<String> {
     let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut exercises: Vec<String> = Vec::new();
-    let current_profile: &str = &doc["current_profile"].as_str().unwrap();
+    let current_profile: &str = doc["current_profile"].as_str().unwrap();
     
     
     if let Some(exercises_table) = doc.get("exercises").and_then(|t| t.as_table()) {
-        for (exercise_name, exercise_data) in exercises_table.iter() {
+        for (exercise_name, exercise_data) in exercises_table {
             if let Some(status) = exercise_data.get("profiles").unwrap().get(current_profile) {
-                if status.as_bool().unwrap() == true {
+                if status.as_bool().unwrap() {
                     exercises.push(String::from(exercise_name));
                 }
             }
@@ -187,7 +191,7 @@ fn get_exercise_settings() -> Vec<Exercise> {
     let current_profile: &str = doc["current_profile"].as_str().unwrap();
 
     if let Some(exercises_table) = doc.get("exercises").and_then(|t| t.as_table()) {
-        for (exercise_name, exercise_data) in exercises_table.iter() {
+        for (exercise_name, exercise_data) in exercises_table {
             if let Some(status) = exercise_data.get("profiles").unwrap().get(current_profile).unwrap().as_bool() {
                 exercises.push(String::from(exercise_name));
                 activations.push(status);
@@ -195,14 +199,14 @@ fn get_exercise_settings() -> Vec<Exercise> {
         }
     }
 
-    let items: Vec<Exercise> = exercises.into_iter().zip(activations.into_iter()).map(|(exercise, activation)| Exercise {
+    let items: Vec<Exercise> = exercises.into_iter().zip(activations).map(|(exercise, activation)| Exercise {
         name: exercise.to_shared_string(),
         activation_status: activation,}).collect();
 
     items
 }
 
-fn set_exercise_activation(exercise_name: SharedString) {
+fn set_exercise_activation(exercise_name: &SharedString) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
     let current_profile: String = doc["current_profile"].as_str().unwrap().to_string();
@@ -214,6 +218,7 @@ fn set_exercise_activation(exercise_name: SharedString) {
 }
 
 fn remove_exercise(exercise: &str) {
+    //FIXME entfernte muss aus allen profilen entfertn werden
     let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
@@ -285,7 +290,7 @@ fn get_profile_names() -> Option<Vec<SharedString>> {
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().ok()?;
 
     let exercises: &Table = doc.get("exercises")?.as_table()?;
-    let profile_inline: &toml_edit::InlineTable = exercises.get_values().iter().next()?.1.as_inline_table()?.get("profiles")?.as_inline_table()?;
+    let profile_inline: &toml_edit::InlineTable = exercises.get_values().first()?.1.as_inline_table()?.get("profiles")?.as_inline_table()?;
     let profile_names = profile_inline.iter().map(|x| x.0.into()).collect::<Vec<SharedString>>();
 
     Some(profile_names)
@@ -338,9 +343,9 @@ fn main() {
     ui.on_start_pressed(move |floor: SharedString, ceil: SharedString| {
 
         if !get_exercises().is_empty() {
-            if *start_button_status_clone.borrow() == true {
+            if *start_button_status_clone.borrow() {
 
-                change_interval(floor, ceil);
+                change_interval(&floor, &ceil);
 
                 if let Some(handle) = ui_handle.upgrade() {
                     *start_button_status_clone.borrow_mut() = false;
@@ -377,7 +382,7 @@ fn main() {
                             //Audio
                             let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open(PATH_TO_SOUND).unwrap())).unwrap().amplify(VOLUME);
                             sink.borrow_mut().append(boing);
-                            sink.borrow_mut().play()
+                            sink.borrow_mut().play();
 
                         } else if !*is_running_deep.borrow() {
                             timer_clone.stop();
@@ -386,14 +391,12 @@ fn main() {
                                 handle.set_start_button_status(true);
                             }
 
-                        } else {
-                            if let Some(handle) = ui_handle_deep.upgrade() {
-                                handle.set_passed_time(duration as i32);
-                            }
+                        } else if let Some(handle) = ui_handle_deep.upgrade() {
+                            handle.set_passed_time(duration as i32);
                         }
                     });
                 }
-            } else if *start_button_status_clone.borrow() == false {
+            } else if !(*start_button_status_clone.borrow()) {
                 *is_running_clone.borrow_mut() = false;
                 if let Some(handle) = ui_handle.upgrade() {
                     *start_button_status_clone.borrow_mut() = true;
@@ -416,11 +419,11 @@ fn main() {
     });
 
     ui.on_changed_activation_settings(move |name: SharedString| {
-        set_exercise_activation(name);
+        set_exercise_activation(&name);
     });
 
     ui.on_add_exercise(move |name:SharedString, exercise_type:SharedString| {
-        add_exercise(name.as_str(), &exercise_type.as_str());
+        add_exercise(name.as_str(), exercise_type.as_str());
         
         if let Some(handle) = ui_handle_add_exercise.upgrade() {
             let exercise_structs: Vec<Exercise> = get_exercise_settings();
@@ -472,7 +475,9 @@ fn main() {
     ui.run().unwrap();
 }
 
+//FIXME keine übungen dann crashts
 //TODO hovereffekte für buttons
+//TODO anzeige welches profil gerade ist
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können
 //TODO prioritize
