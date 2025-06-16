@@ -1,4 +1,4 @@
-#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+//#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_precision_locc)]
 #![allow(clippy::too_many_lines)]
@@ -15,16 +15,15 @@ use rodio::{Decoder, OutputStream, Sink, Source};
 use chrono::Local;
 
 //REMINDER src/...
-const PATH_TO_CONFIG: &str = "src/...resources/config.toml";
-const PATH_TO_DATA: &str =   "src/...resources/exercise_data.toml";
-const PATH_TO_CHRONO: &str = "src/...resources/chronological_data.txt";
-const PATH_TO_SOUND: &str =  "src/...resources/Sound.mp3";
-const VOLUME: f32 = 0.3;
+const PATH_TO_CONFIG: &str = "src/resources/config.toml";
+const PATH_TO_DATA: &str =   "src/resources/exercise_data.toml";
+const PATH_TO_CHRONO: &str = "src/resources/chronological_data.txt";
+const PATH_TO_SOUND: &str =  "src/resources/Sound.mp3";
+static mut VOLUME: f32 = 0.3;
 
 slint::slint! {export { MainWindow } from "src/main.slint";}
 
 fn add_exercise(exercise: &str, exercise_type: &str) {
-    //FIXME hinzugefügte muss in alle porofile
     let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
     let mut table: Table = Table::new();
@@ -40,9 +39,15 @@ fn add_exercise(exercise: &str, exercise_type: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
     
+    let shit: Vec<SharedString> = get_profile_names();
+    let profiles: Vec<&str> = shit.iter().map(|x: &SharedString| x.as_str()).collect();
+    
+
     doc["exercises"][exercise]["type"] = value(exercise_type);
     let current_profile: String = doc["current_profile"].as_str().unwrap().to_string();
-    doc["exercises"][exercise]["profiles"][current_profile] = value(true);
+    for profile in profiles {
+        doc["exercises"][exercise]["profiles"][profile] = value(false);
+    }
     
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
@@ -218,7 +223,6 @@ fn set_exercise_activation(exercise_name: &SharedString) {
 }
 
 fn remove_exercise(exercise: &str) {
-    //FIXME entfernte muss aus allen profilen entfertn werden
     let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
@@ -285,15 +289,25 @@ fn remove_profile(profile: &str) {
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
-fn get_profile_names() -> Option<Vec<SharedString>> {
-    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).ok()?;
-    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().ok()?;
+fn get_profile_names() -> Vec<SharedString> {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).unwrap();
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().unwrap();
 
-    let exercises: &Table = doc.get("exercises")?.as_table()?;
-    let profile_inline: &toml_edit::InlineTable = exercises.get_values().first()?.1.as_inline_table()?.get("profiles")?.as_inline_table()?;
-    let profile_names = profile_inline.iter().map(|x| x.0.into()).collect::<Vec<SharedString>>();
+    let exercises: &Table = doc.get("exercises").unwrap().as_table().unwrap();
+    if let Some(profile_inline) = exercises.get_values().first() {
+        let profile_names1 = profile_inline.1.as_inline_table().unwrap().get("profiles").unwrap().as_inline_table().unwrap();
+        let profile_names2: Vec<SharedString> = profile_names1.iter().map(|x| x.0.into()).collect::<Vec<SharedString>>();
+        profile_names2
+    } else {
+        Vec::new()
+    }
+}
 
-    Some(profile_names)
+fn get_current_profile() -> String {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).unwrap();
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().unwrap();
+
+    return doc["current_profile"].as_str().unwrap().to_string();
 }
 
 fn main() {
@@ -317,7 +331,8 @@ fn main() {
         handle.set_exercises(ModelRc::new(VecModel::from(exercise_structs)));
         let exercise_names: Vec<SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
         handle.set_exercise_names(ModelRc::new(VecModel::from(exercise_names)));
-        handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names().unwrap())));
+        handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names())));
+        handle.set_current_profile(get_current_profile().into());
     }
 
     // true => time-loop inaktiv
@@ -380,10 +395,12 @@ fn main() {
                             }
 
                             //Audio
-                            let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open(PATH_TO_SOUND).unwrap())).unwrap().amplify(VOLUME);
-                            sink.borrow_mut().append(boing);
-                            sink.borrow_mut().play();
-
+                            unsafe {
+                                let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open(PATH_TO_SOUND).unwrap())).unwrap().amplify(VOLUME);
+                                sink.borrow_mut().append(boing);
+                                sink.borrow_mut().play();
+                            }    
+                        
                         } else if !*is_running_deep.borrow() {
                             timer_clone.stop();
                             *start_button_status_deep.borrow_mut() = true;
@@ -450,7 +467,7 @@ fn main() {
         add_profile(name.as_str());
 
         if let Some(handle) = ui_handle_add_profile.upgrade() {
-            handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names().unwrap())));
+            handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names())));
         }
     });
 
@@ -458,7 +475,7 @@ fn main() {
         remove_profile(name.as_str());
 
         if let Some(handle) = ui_handle_remove_profile.upgrade() {
-            handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names().unwrap())));
+            handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names())));
         }
     });
 
@@ -469,15 +486,18 @@ fn main() {
             let exercise_structs: Vec<Exercise> = get_exercise_settings();
             let exercise_structs_clone = exercise_structs.clone();
             handle.set_exercises(ModelRc::new(VecModel::from(exercise_structs)));
+            handle.set_current_profile(get_current_profile().into());
         }
+    });
+
+    ui.on_changed_volume(move |volume: i32| {
+        unsafe {VOLUME = volume as f32 /100.0;}
     });
 
     ui.run().unwrap();
 }
 
-//FIXME keine übungen dann crashts
 //TODO hovereffekte für buttons
-//TODO anzeige welches profil gerade ist
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können
 //TODO prioritize

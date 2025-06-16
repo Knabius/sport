@@ -1,4 +1,5 @@
 import { Theme } from "Theme.slint";
+import { HorizontalBox } from "std-widgets.slint";
 
 component StartButton inherits Rectangle {
     in-out property <bool> status;
@@ -38,6 +39,9 @@ export component BasicButton {
     in-out property <bool> start_button_status: true;
     in-out property <int> passed_time: 0;
 
+    in property <string> current_profile;
+
+
     HorizontalLayout {
         alignment: center;
         VerticalLayout {
@@ -54,6 +58,20 @@ export component BasicButton {
                     }
                 }
             }
+
+            HorizontalBox {
+                Text {
+                    //width: 150px;
+                    text: "Current Profile: " + root.current_profile;
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    font-size: 18px;
+                    font-family: "Inter";
+                    color: Theme.border_color;
+                }
+            }
+            
             HorizontalLayout {
                 alignment: center;
                 spacing: 10px;

@@ -24,6 +24,7 @@ export component MainWindow inherits Window {
     callback add_profile(string);
     callback remove_profile(string);
     callback change_profile(string);
+    callback changed_volume(int);
     
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
@@ -45,7 +46,8 @@ export component MainWindow inherits Window {
     in-out property <bool> setting_general_doubles: true;
     in-out property <[Exercise]> exercises;
     in-out property <[string]> exercise_names;
-    in_out property <[string]> profile_names;
+    in-out property <[string]> profile_names;
+    in-out property <string> current_profile;
 
     width: 1200px;
     height: 800px;
@@ -66,6 +68,7 @@ export component MainWindow inherits Window {
         initial_ceil_value: initial_ceil_value;
         start_button_status: start_button_status;
         passed_time: passed_time;
+        current_profile: current_profile;
         start_pressed(floor, ceil) => {
             start_pressed(floor, ceil);
             passed_time = 0;
@@ -113,6 +116,9 @@ export component MainWindow inherits Window {
         }
         change_profile(name) => {
             change_profile(name);
+        }
+        changed_volume(volume) => {
+            changed_volume(volume);
         }
     }
 }

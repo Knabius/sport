@@ -1,4 +1,4 @@
-import { HorizontalBox, VerticalBox, TabWidget, ComboBox, Switch, ListView } from "std-widgets.slint";
+import { HorizontalBox, VerticalBox, TabWidget, ComboBox, Switch, ListView, Slider } from "std-widgets.slint";
 import { Theme } from "Theme.slint";
 
 //Structs
@@ -16,6 +16,7 @@ export component Settings {
     callback add_profile(string);
     callback remove_profile(string);
     callback change_profile(string);
+    callback changed_volume(int);
 
     in property <bool> setting_general_doubles;
     in-out property <[Exercise]> exercises;
@@ -160,6 +161,21 @@ export component Settings {
                                             changed_general(doubles.checked);
                                         }
                                     }
+                                }
+                            }
+                        }
+                        HorizontalBox {
+                            Text {
+                                width: 70px;
+                                text: "Volume ";
+                                font-size: 18px;
+                                font-family: "Inter";
+                            }
+                            Slider {
+                                value: 30;
+                                width: 200px;
+                                changed(value) => {
+                                    changed_volume(value);
                                 }
                             }
                         }
