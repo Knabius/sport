@@ -1,0 +1,118 @@
+import { TabWidget, VerticalBox, HorizontalBox, Switch, ListView, ComboBox } from "std-widgets.slint";
+import { RepInput } from "RepInput.slint";
+import { BasicButton } from "BasicButton.slint";
+import { SettingsButton } from "SettingsButton.slint";
+import { Settings, Exercise } from "Settings.slint";
+import { Theme } from "Theme.slint";
+
+//Enums
+enum CurrentView {
+    BasicButton,
+    RepInput,
+    Settings
+}
+
+//MainWidget
+export component MainWindow inherits Window {
+    callback start_pressed(string, string);
+    callback save_reps(string);
+    callback changed_general_settings(bool);
+    callback changed_activation_settings(string);
+    callback add_exercise(string, string);
+    callback remove_exercise(string);
+    callback add_reps(string, string);
+    callback add_profile(string);
+    callback remove_profile(string);
+    callback change_profile(string);
+    
+    //Interval Inputs
+    in-out property <bool> floor_input_invalid: false;
+    in-out property <int> initial_floor_value;
+    in-out property <bool> ceil_input_invalid: false;
+    in-out property <int> initial_ceil_value;
+    
+    //Start Button
+    in-out property <bool> start_button_status: true;
+    in-out property <int> passed_time: 0;
+    
+    //Exercise
+    in property <string> chosen_exercise: "";
+
+    //View
+    in-out property <CurrentView> current_view: CurrentView.BasicButton;
+
+    //Settings
+    in-out property <bool> setting_general_doubles: true;
+    in-out property <[Exercise]> exercises;
+    in-out property <[string]> exercise_names;
+    in_out property <[string]> profile_names;
+
+    width: 1200px;
+    height: 800px;
+    title: "Sport-Tracker";
+    background: Theme.background_color;
+
+    RepInput {
+        visible: current_view == CurrentView.RepInput;
+        exercise: chosen_exercise;
+        save_reps(reps) => {
+            root.save_reps(reps);
+        }
+    }
+
+    BasicButton {
+        visible: current_view == CurrentView.BasicButton;
+        initial_floor_value: initial_floor_value;
+        initial_ceil_value: initial_ceil_value;
+        start_button_status: start_button_status;
+        passed_time: passed_time;
+        start_pressed(floor, ceil) => {
+            start_pressed(floor, ceil);
+            passed_time = 0;
+        }
+    }
+    
+    SettingsButton {
+        property <CurrentView> last_view;
+        open_settings => {
+            if current_view == CurrentView.Settings {
+                current_view = last_view;
+            } else {
+                last_view = current_view;
+                current_view = CurrentView.Settings;
+            }
+        }
+    }
+
+    Settings {
+        visible: current_view == CurrentView.Settings;
+        setting_general_doubles: setting_general_doubles;
+        exercises: exercises;
+        exercise_names: exercise_names;
+        profile_names: profile_names;
+        changed_general(doubles) => {
+            changed_general_settings(doubles);
+        }
+        changed_activation(name) => {
+            changed_activation_settings(name);
+        }
+        add_exercise(name, type) => {
+            add_exercise(name, type);
+        }
+        remove_exercise(name) => {
+            remove_exercise(name);
+        }
+        add_reps(name, reps) => {
+            add_reps(name, reps);
+        }
+        add_profile(name) => {
+            add_profile(name);
+        }
+        remove_profile(name) => {
+            remove_profile(name);
+        }
+        change_profile(name) => {
+            change_profile(name);
+        }
+    }
+}

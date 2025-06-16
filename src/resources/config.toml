@@ -1,0 +1,16 @@
+floor = 1
+ceil = 5
+doubles = false
+last_exercise = "Planche"
+current_profile = "normal"
+
+[exercises]
+Pullup = { type = "Reps", profiles = { normal = false} }
+Pushup = { type = "Reps", profiles = { normal = false} }
+Planche = { type = "Reps", profiles = { normal = true} }
+Planche-Pushup = { type = "Reps", profiles = { normal = false} }
+Abs = { type = "Reps", profiles = { normal = false} }
+Lever = { type = "Reps", profiles = { normal = false} }
+Swing = { type = "Reps", profiles = { normal = false} }
+Handstand = { type = "Reps", profiles = { normal = false} }
+Stretch = { type = "Reps", profiles = { normal = false} }
