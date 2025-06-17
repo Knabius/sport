@@ -1,0 +1,17 @@
+floor = 500
+ceil = 900
+doubles = false
+last_exercise = "Planche"
+current_profile = "normal"
+volume = 58.0
+
+[exercises]
+Pullup = { type = "Reps", profiles = { normal = false, nigger = false } }
+Pushup = { type = "Reps", profiles = { normal = false, nigger = false } }
+Planche = { type = "Reps", profiles = { normal = true, nigger = false } }
+Planche-Pushup = { type = "Reps", profiles = { normal = false, nigger = false } }
+Abs = { type = "Reps", profiles = { normal = false, nigger = false } }
+Lever = { type = "Reps", profiles = { normal = false, nigger = false } }
+Swing = { type = "Reps", profiles = { normal = false, nigger = false } }
+Handstand = { type = "Reps", profiles = { normal = false, nigger = false } }
+Stretch = { type = "Reps", profiles = { normal = false, nigger = false } }

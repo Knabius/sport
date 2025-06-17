@@ -1,20 +1,27 @@
-#![windows_subsystem = "windows"]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_precision_locc)]
+#![allow(clippy::too_many_lines)]
 
-use toml_edit::{DocumentMut, Item, Table, value};
+use toml_edit::{value, DocumentMut, Entry, InlineEntry, Item, Table, TableLike};
 use std::fs;
 use std::time::Instant;
-use slint::{SharedString, Timer, TimerMode, ToSharedString};
+use slint::{SharedString, Timer, TimerMode, ToSharedString, ModelRc, VecModel, Weak};
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::fs::File;
-use std::io::BufReader;
+use std::fs::{File, OpenOptions};
+use std::io::{BufReader, Write};
 use rodio::{Decoder, OutputStream, Sink, Source};
+use chrono::Local;
 
-const PATH_TO_CONFIG: &str = "config.toml";
-const PATH_TO_DATA: &str = "exercise_data.toml";
-const VOLUME: f32 = 0.3;
+//REMINDER src/...
+const PATH_TO_CONFIG: &str = "resources/config.toml";
+const PATH_TO_DATA: &str =   "resources/exercise_data.toml";
+const PATH_TO_CHRONO: &str = "resources/chronological_data.txt";
+const PATH_TO_SOUND: &str =  "resources/Sound.mp3";
+static mut VOLUME: f32 = 0.3;
 
-slint::slint! {export { MainWindow } from "src/ui.slint";}
+slint::slint! {export { MainWindow } from "src/main.slint";}
 
 fn add_exercise(exercise: &str, exercise_type: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
@@ -32,8 +39,15 @@ fn add_exercise(exercise: &str, exercise_type: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
     
+    let shit: Vec<SharedString> = get_profile_names();
+    let profiles: Vec<&str> = shit.iter().map(|x: &SharedString| x.as_str()).collect();
+    
+
     doc["exercises"][exercise]["type"] = value(exercise_type);
-    doc["exercises"][exercise]["profiles"]["normal"] = value(true);
+    let current_profile: String = doc["current_profile"].as_str().unwrap().to_string();
+    for profile in profiles {
+        doc["exercises"][exercise]["profiles"][profile] = value(false);
+    }
     
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
@@ -43,7 +57,7 @@ fn add_reps(exercise: &str, reps: i32) {
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     if let Some(exercise_value) = doc.get(exercise) {
-        let reps: i64 = reps as i64;
+        let reps: i64 = i64::from(reps);
         let mut all_reps: i64 = 0;
         let mut amount: i64 = 0;
         let mut max: i64 = 0;
@@ -70,11 +84,14 @@ fn add_reps(exercise: &str, reps: i32) {
             doc[exercise]["reps"] = value(all_reps);
             
             fs::write(PATH_TO_DATA, doc.to_string()).expect("Fehler beim Schreiben!");
+
+            let mut chrono: File = OpenOptions::new().append(true).create(true).open(PATH_TO_CHRONO).unwrap();
+            writeln!(chrono, "[{}]:{}:{}", Local::now().format("%Y-%m-%d"),exercise, reps);
         }
     }
 }
 
-fn change_interval(floor: SharedString, ceil: SharedString) {
+fn change_interval(floor: &SharedString, ceil: &SharedString) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
@@ -91,15 +108,14 @@ fn change_interval(floor: SharedString, ceil: SharedString) {
 }
 
 fn pick_random_exercise(exercises: Vec<String>) -> String {
-    //FIXME doubles funktioniert noch nicht
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut exercises: Vec<String> = exercises;
     let doubles: bool = doc["doubles"].as_bool().unwrap();
-    let last_exercise: String = doc["last_exercise"].to_string();
+    let last_exercise: String = doc["last_exercise"].as_str().unwrap().to_string();
 
-    if !doubles && exercises.len() > 1{
+    if !doubles && exercises.len() > 1 {
         if let Some(index) = exercises.iter().position(|x| *x == last_exercise) {
             exercises.remove(index);
         }
@@ -116,11 +132,13 @@ fn get_exercises() -> Vec<String> {
     let doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
 
     let mut exercises: Vec<String> = Vec::new();
-
+    let current_profile: &str = doc["current_profile"].as_str().unwrap();
+    
+    
     if let Some(exercises_table) = doc.get("exercises").and_then(|t| t.as_table()) {
-        for (exercise_name, exercise_data) in exercises_table.iter() {
-            if let Some(status) = exercise_data.get("profiles").unwrap().get("normal") {
-                if status.as_bool().unwrap() == true {
+        for (exercise_name, exercise_data) in exercises_table {
+            if let Some(status) = exercise_data.get("profiles").unwrap().get(current_profile) {
+                if status.as_bool().unwrap() {
                     exercises.push(String::from(exercise_name));
                 }
             }
@@ -175,29 +193,31 @@ fn get_exercise_settings() -> Vec<Exercise> {
 
     let mut exercises: Vec<String>  = Vec::new();
     let mut activations: Vec<bool> = Vec::new();
+    let current_profile: &str = doc["current_profile"].as_str().unwrap();
 
     if let Some(exercises_table) = doc.get("exercises").and_then(|t| t.as_table()) {
-        for (exercise_name, exercise_data) in exercises_table.iter() {
-            if let Some(status) = exercise_data.get("profiles").unwrap().get("normal").unwrap().as_bool() {
+        for (exercise_name, exercise_data) in exercises_table {
+            if let Some(status) = exercise_data.get("profiles").unwrap().get(current_profile).unwrap().as_bool() {
                 exercises.push(String::from(exercise_name));
                 activations.push(status);
             }
         }
     }
 
-    let items: Vec<Exercise> = exercises.into_iter().zip(activations.into_iter()).map(|(exercise, activation)| Exercise {
+    let items: Vec<Exercise> = exercises.into_iter().zip(activations).map(|(exercise, activation)| Exercise {
         name: exercise.to_shared_string(),
         activation_status: activation,}).collect();
 
     items
 }
 
-fn set_exercise_activation(exercise_name: slint::SharedString) {
+fn set_exercise_activation(exercise_name: &SharedString) {
     let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
     let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+    let current_profile: String = doc["current_profile"].as_str().unwrap().to_string();
 
-    let val: bool = doc["exercises"][exercise_name.as_str()]["profiles"]["normal"].as_bool().unwrap();
-    doc["exercises"][exercise_name.as_str()]["profiles"]["normal"] = value(!val);
+    let val: bool = doc["exercises"][exercise_name.as_str()]["profiles"][&current_profile].as_bool().unwrap();
+    doc["exercises"][exercise_name.as_str()]["profiles"][&current_profile] = value(!val);
 
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
@@ -220,10 +240,96 @@ fn remove_exercise(exercise: &str) {
     fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
 }
 
+fn change_profile(profile: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    doc["current_profile"] = value(profile);
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
+fn add_profile(profile: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    if let Some(exercises) = doc.get_mut("exercises").and_then(|e| e.as_table_mut()) {
+        for (_name, settings) in exercises.iter_mut() {
+            let settings_table = settings.as_inline_table_mut().unwrap();
+            if let Some(profiles_table) = settings_table.get_mut("profiles").and_then(|p| p.as_inline_table_mut()) {
+                profiles_table.entry(profile).or_insert(false.into());
+            }
+        }
+    }
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
+fn remove_profile(profile: &str) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    let current_profile: &str = doc["current_profile"].as_str().unwrap();
+    if current_profile == profile {
+        return;
+    }
+    
+    if let Some(exercises) = doc.get_mut("exercises").and_then(|e| e.as_table_mut()) {
+        for (_name, settings) in exercises.iter_mut() {
+            let settings_table = settings.as_inline_table_mut().unwrap();
+            if let Some(profiles_table) = settings_table.get_mut("profiles").and_then(|p| p.as_inline_table_mut()) {
+                match profiles_table.entry(profile) {
+                    InlineEntry::Occupied(key) => {key.remove();}
+                    InlineEntry::Vacant(key) => {}
+                }
+            }
+        }
+    }
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
+fn get_profile_names() -> Vec<SharedString> {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).unwrap();
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().unwrap();
+
+    let exercises: &Table = doc.get("exercises").unwrap().as_table().unwrap();
+    if let Some(profile_inline) = exercises.get_values().first() {
+        let profile_names1 = profile_inline.1.as_inline_table().unwrap().get("profiles").unwrap().as_inline_table().unwrap();
+        let profile_names2: Vec<SharedString> = profile_names1.iter().map(|x| x.0.into()).collect::<Vec<SharedString>>();
+        profile_names2
+    } else {
+        Vec::new()
+    }
+}
+
+fn get_current_profile() -> String {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).unwrap();
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().unwrap();
+
+    return doc["current_profile"].as_str().unwrap().to_string();
+}
+
+fn change_volume(volume: i32) {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    doc["volume"] = value(volume as f64);
+
+    fs::write(PATH_TO_CONFIG, doc.to_string()).expect("Fehler beim Schreiben!");
+}
+
+fn get_volume() -> i32 {
+    let toml_str: String = fs::read_to_string(PATH_TO_CONFIG).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    return doc["volume"].as_float().unwrap() as i32;
+}
+
 fn main() {
     //Slint
     let ui = MainWindow::new().unwrap();
-    let ui_handle: slint::Weak<MainWindow> = ui.as_weak();
+    let ui_handle: Weak<MainWindow> = ui.as_weak();
 
     //Audio
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
@@ -237,10 +343,13 @@ fn main() {
         handle.set_setting_general_doubles(get_general_settings());
 
         let exercise_structs: Vec<Exercise> = get_exercise_settings();
-        let exercise_structs_clone = exercise_structs.clone();
-        handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(exercise_structs)));
-        let exercise_names: Vec<slint::SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
-        handle.set_exercise_names(slint::ModelRc::new(slint::VecModel::from(exercise_names)));
+        let exercise_structs_clone: Vec<Exercise> = exercise_structs.clone();
+        handle.set_exercises(ModelRc::new(VecModel::from(exercise_structs)));
+        let exercise_names: Vec<SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
+        handle.set_exercise_names(ModelRc::new(VecModel::from(exercise_names)));
+        handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names())));
+        handle.set_current_profile(get_current_profile().into());
+        handle.set_volume(get_volume());
     }
 
     // true => time-loop inaktiv
@@ -251,20 +360,24 @@ fn main() {
     let start_button_status: Rc<RefCell<bool>> = Rc::new(RefCell::new(true));
     let start_button_status_clone: Rc<RefCell<bool>> = start_button_status.clone();
 
-    let ui_handle_save_reps: slint::Weak<MainWindow> = ui_handle.clone();
-    let ui_handle_add_exercise: slint::Weak<MainWindow> = ui_handle.clone();
-    let ui_handle_remove_exercise: slint::Weak<MainWindow> = ui_handle.clone();
-
+    let ui_handle_save_reps: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_add_exercise: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_remove_exercise: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_add_profile: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_remove_profile: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_change_profile: Weak<MainWindow> = ui_handle.clone();
 
     let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
     let chosen_exercise_rep_clone: Rc<RefCell<String>> = chosen_exercise.clone();
 
-    ui.on_start_pressed(move |floor: slint::SharedString, ceil: slint::SharedString| {
+    let sink_clone: Rc<RefCell<Sink>> = sink.clone();
+
+    ui.on_start_pressed(move |floor: SharedString, ceil: SharedString| {
 
         if !get_exercises().is_empty() {
-            if *start_button_status_clone.borrow() == true {
+            if *start_button_status_clone.borrow() {
 
-                change_interval(floor, ceil);
+                change_interval(&floor, &ceil);
 
                 if let Some(handle) = ui_handle.upgrade() {
                     *start_button_status_clone.borrow_mut() = false;
@@ -281,7 +394,7 @@ fn main() {
                     *is_running_clone.borrow_mut() = true;
                     let is_running_deep: Rc<RefCell<bool>> = is_running_clone.clone();
                     let start_button_status_deep: Rc<RefCell<bool>> = start_button_status_clone.clone();
-                    let ui_handle_deep: slint::Weak<MainWindow> = ui_handle.clone();
+                    let ui_handle_deep: Weak<MainWindow> = ui_handle.clone();
 
                     let sink: Rc<RefCell<Sink>> = sink.clone();
 
@@ -297,9 +410,14 @@ fn main() {
                                 handle.set_chosen_exercise(chosen_exercise_clone.borrow().as_str().into());
                                 handle.set_current_view(CurrentView::RepInput);
                             }
-                            let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open("src/resources/Sound.mp3").unwrap())).unwrap().amplify(VOLUME);
-                            sink.borrow_mut().append(boing);
 
+                            //Audio
+                            unsafe {
+                                let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open(PATH_TO_SOUND).unwrap())).unwrap().amplify(VOLUME/100.0);
+                                sink.borrow_mut().append(boing);
+                                sink.borrow_mut().play();
+                            }    
+                        
                         } else if !*is_running_deep.borrow() {
                             timer_clone.stop();
                             *start_button_status_deep.borrow_mut() = true;
@@ -307,14 +425,12 @@ fn main() {
                                 handle.set_start_button_status(true);
                             }
 
-                        } else {
-                            if let Some(handle) = ui_handle_deep.upgrade() {
-                                handle.set_passed_time(duration as i32);
-                            }
+                        } else if let Some(handle) = ui_handle_deep.upgrade() {
+                            handle.set_passed_time(duration as i32);
                         }
                     });
                 }
-            } else if *start_button_status_clone.borrow() == false {
+            } else if !(*start_button_status_clone.borrow()) {
                 *is_running_clone.borrow_mut() = false;
                 if let Some(handle) = ui_handle.upgrade() {
                     *start_button_status_clone.borrow_mut() = true;
@@ -324,26 +440,31 @@ fn main() {
         }
     });
 
-    ui.on_save_reps(move |reps: slint::SharedString| {
+    ui.on_save_reps(move |reps: SharedString| {
         if let Some(handle) = ui_handle_save_reps.upgrade() {
             handle.set_current_view(CurrentView::BasicButton);
         }
         add_reps(chosen_exercise_rep_clone.borrow().as_str(), reps.parse::<i32>().unwrap());
+        sink_clone.borrow_mut().clear();
     });
 
     ui.on_changed_general_settings(move |setting_doubles: bool| {
         set_general_settings(setting_doubles);
     });
 
-    ui.on_changed_activation_settings(move |name: slint::SharedString| {
-        set_exercise_activation(name);
+    ui.on_changed_activation_settings(move |name: SharedString| {
+        set_exercise_activation(&name);
     });
 
     ui.on_add_exercise(move |name:SharedString, exercise_type:SharedString| {
-        add_exercise(name.as_str(), &exercise_type.as_str());
-
+        add_exercise(name.as_str(), exercise_type.as_str());
+        
         if let Some(handle) = ui_handle_add_exercise.upgrade() {
-            handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(get_exercise_settings())));
+            let exercise_structs: Vec<Exercise> = get_exercise_settings();
+            let exercise_structs_clone = exercise_structs.clone();
+            handle.set_exercises(ModelRc::new(VecModel::from(exercise_structs)));
+            let exercise_names: Vec<SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
+            handle.set_exercise_names(ModelRc::new(VecModel::from(exercise_names)));
         }
     });
 
@@ -351,7 +472,7 @@ fn main() {
         remove_exercise(name.as_str());
 
         if let Some(handle) = ui_handle_remove_exercise.upgrade() {
-            handle.set_exercises(slint::ModelRc::new(slint::VecModel::from(get_exercise_settings())));
+            handle.set_exercises(ModelRc::new(VecModel::from(get_exercise_settings())));
         }
     });
 
@@ -359,12 +480,41 @@ fn main() {
         add_reps(name.as_str(), reps.as_str().parse::<i32>().unwrap());
     });
 
+    ui.on_add_profile(move |name: SharedString| {
+        add_profile(name.as_str());
+
+        if let Some(handle) = ui_handle_add_profile.upgrade() {
+            handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names())));
+        }
+    });
+
+    ui.on_remove_profile(move |name: SharedString| {
+        remove_profile(name.as_str());
+
+        if let Some(handle) = ui_handle_remove_profile.upgrade() {
+            handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names())));
+        }
+    });
+
+    ui.on_change_profile(move |name: SharedString| {
+        change_profile(name.as_str());
+
+        if let Some(handle) = ui_handle_change_profile.upgrade() {
+            let exercise_structs: Vec<Exercise> = get_exercise_settings();
+            let exercise_structs_clone = exercise_structs.clone();
+            handle.set_exercises(ModelRc::new(VecModel::from(exercise_structs)));
+            handle.set_current_profile(get_current_profile().into());
+        }
+    });
+
+    ui.on_changed_volume(move |volume: i32| {
+        unsafe {VOLUME = volume as f32;}
+        change_volume(volume);
+    });
+
     ui.run().unwrap();
 }
 
-//TODO profiles
-//TODO Main Button mit Enter auslösen
 //TODO daten einsehen können
 //TODO daten in diagrammen sehen können
 //TODO prioritize
-//FIXME nach hinzufügen von übung muss übung auch in add reps

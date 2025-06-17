@@ -1,0 +1,567 @@
+import { HorizontalBox, VerticalBox, TabWidget, ComboBox, Switch, ListView, Slider } from "std-widgets.slint";
+import { Theme } from "Theme.slint";
+
+//Structs
+export struct Exercise {
+    name: string,
+    activation_status: bool,
+}
+
+export component Settings {
+    callback changed_general(bool);
+    callback changed_activation(string);
+    callback add_exercise(string, string);
+    callback remove_exercise(string);
+    callback add_reps(string, string);
+    callback add_profile(string);
+    callback remove_profile(string);
+    callback change_profile(string);
+    callback changed_volume(int);
+
+    in property <bool> setting_general_doubles;
+    in-out property <[Exercise]> exercises;
+    in-out property <[string]> exercise_names;
+    in-out property <bool> add_exercise_vis: false;
+    in-out property <bool> remove_exercise_vis: false;
+    in-out property <bool> add_reps_vis: false;
+    in-out property <[string]> profile_names;
+    in-out property <bool> add_profile_vis: false;
+    in-out property <bool> remove_profile_vis: false;
+    in-out property <int> volume;
+
+    width: 600px;
+    height: 400px;
+
+    Rectangle {
+        y: -140px;
+        width: 200px;
+        height: 80px;
+        background: add_reps_vis ? (touch.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch.has-hover ? Theme.accent_hovered : Theme.accent);
+        border-radius: 5px;
+        
+        Text {
+            text: "Add Reps";
+            font-size: 30px;
+            font-family: "Inter";
+        }
+
+        touch := TouchArea {
+            clicked => {
+                add_reps_vis = !add_reps_vis;
+                add_rep_box.current-index = 0;
+                add_reps_input.text = "Reps";
+            }
+        }
+    }
+
+    Rectangle {
+        visible: add_reps_vis;
+        width: 400px;
+        height: 300px;
+        background: Theme.container1;
+        border-color: Theme.border_color;
+        border-width: 1.5px;
+        border-radius: 2px;
+
+        VerticalBox {
+            alignment: center;
+            HorizontalBox {
+                alignment: center;
+                add_rep_box := ComboBox {
+                    width: 200px;
+                    model: exercise_names;
+                }
+            }
+
+            HorizontalBox {
+                alignment: center;
+                Rectangle {
+                    background: Theme.container2;
+                    width: 200px;
+                    height: 35px;
+                    border-radius: 3px;
+                    border-width: 1.5px;
+                    border-color: Theme.border_color;
+                    add_reps_input := TextInput {
+                        text: "Reps";
+                        font-size: 20px;
+                        font-family: "Inter";
+                        width: 200px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+        
+                        accepted => {
+                            add_reps(add_rep_box.current-value, add_reps_input.text);
+                            add_reps_vis = !add_reps_vis;
+                        }
+                    }
+                }
+            }
+
+            HorizontalBox {
+                alignment: center;
+
+                Rectangle {
+                    width: 80px;
+                    height: 40px;
+                    background: touch1.has-hover ? Theme.accent_hovered : Theme.accent;
+                    border-radius: 3px;
+                    
+                    Text {
+                        text: "Add";
+                        font-size: 20px;
+                        font-family: "Inter";
+                    }
+        
+                    touch1 := TouchArea {
+                        clicked => {
+                            add_reps(add_rep_box.current-value, add_reps_input.text);
+                            add_reps_vis = !add_reps_vis;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        visible: !add_reps_vis;
+        border-radius: 2px;
+        border-width: 1px;
+        border-color: Theme.border_color;
+        background: Theme.container1;
+        TabWidget {
+            Tab {
+                title: "General";
+                Rectangle {
+                    VerticalBox {
+                        alignment: start;
+                        Rectangle {
+                            width: 205px;
+                            height: 40px;
+                            border-width: 5px;
+                            padding: 10px;
+                            
+                            Rectangle {
+                                width: 200px; 
+                                height: 35px;
+                                border-width: 1.5px;
+                                border-radius: 2px;
+                                border-color: Theme.border_color;
+                                background: Theme.container2;
+                                HorizontalBox {
+                                    Text {
+                                        text: "Doubles";
+                                        font-size: 16px;
+                                        font-family: "Inter";
+                                    }
+                
+                                    doubles := Switch {
+                                        checked: setting_general_doubles;
+                                        toggled => {
+                                            changed_general(doubles.checked);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        HorizontalBox {
+                            Text {
+                                width: 70px;
+                                text: "Volume ";
+                                font-size: 18px;
+                                font-family: "Inter";
+                            }
+                            Slider {
+                                value: volume;
+                                width: 200px;
+                                changed(value) => {
+                                    changed_volume(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+                                                
+            Tab {
+                title: "Exercises";
+                VerticalBox {
+                    HorizontalBox {
+                        alignment: center;
+                        spacing: 15px;
+                        Rectangle {
+                            height: 30px;
+                            width: 30px;
+                            background: add_exercise_vis ? (touch2.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch2.has-hover ? Theme.accent_hovered : Theme.accent);
+                            border-radius: 2px;
+                            
+                            Image {
+                                width: parent.width*0.6;
+                                height: parent.height*0.6;
+                                source: @image-url("resources/icon_plus.png");
+                            }
+
+                            touch2 := TouchArea {
+                                enabled: !remove_exercise_vis;
+                                clicked => {
+                                    add_exercise_vis = !add_exercise_vis;
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            height: 30px;
+                            width: 30px;
+                            background: remove_exercise_vis ? (touch3.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch3.has-hover ? Theme.accent_hovered : Theme.accent);
+                            border-radius: 2px;
+
+                            Image {
+                                width: parent.width*0.6;
+                                height: parent.height*0.5;
+                                source: @image-url("resources/icon_minus.png");
+                            }
+
+                            touch3 := TouchArea {
+                                enabled: !add_exercise_vis;
+                                clicked => {
+                                    remove_exercise_vis = !remove_exercise_vis;
+                                }
+                            }
+                        }
+                    }
+                                        
+                    if !add_exercise_vis:
+                    ListView {
+                        for data[i] in exercises:
+                        Rectangle {
+                            width: 205px;
+                            height: 40px;
+                            border-width: 5px;
+                            padding: 10px;
+                            
+                            HorizontalBox {
+                                alignment: center;
+
+                                Rectangle {
+                                    width: remove_exercise_vis ? 160px : 200px;
+                                    height: 35px;
+                                    border-width: 1.5px;
+                                    border-radius: 2px;
+                                    border-color: Theme.border_color;
+                                    background: Theme.container2;
+                                    animate width {
+                                         easing: ease-in;
+                                         duration: 300ms;
+                                    }
+                
+                                    HorizontalBox {
+                                        Text {
+                                            text: data.name;
+                                            font-size: 16px;
+                                            font-family: "Inter";
+                                        }
+            
+                                        Switch {
+                                            checked: data.activation_status;
+                                            toggled => {
+                                                exercises[i].activation_status = !exercises[i].activation_status;
+                                                changed_activation(exercises[i].name);
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                if remove_exercise_vis:
+                                Rectangle {
+                                    width: 30px;
+                                    height: 30px;
+                                    background: touch4.has-hover ? Theme.accent_hovered : Theme.accent;
+                                    border-radius: 2px;
+
+                                    Image {
+                                        width: parent.width*0.6;
+                                        height: parent.height*0.5;
+                                        source: @image-url("resources/icon_minus.png");
+                                    }
+
+                                    touch4 := TouchArea {
+                                        clicked => {
+                                            remove_exercise(exercises[i].name);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if add_exercise_vis :
+                    VerticalBox {
+                        height: add_exercise_vis ? 0px : parent.height;
+                        alignment: center;
+                        HorizontalBox {
+                            alignment: center;
+                            Rectangle {
+                                background: Theme.container1;
+                                width: 300px;
+                                height: 200px;
+                                
+                                VerticalBox {
+                                    spacing: 0px;
+                                    alignment: center;
+
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        Rectangle {
+                                            width: 200px;
+                                            height: 35px;
+                                            border-radius: 3px;
+                                            border-width: 1.5px;
+                                            border-color: Theme.border_color;
+                                            background: Theme.container2;
+
+                                            add_exercise_name := TextInput {
+                                                color: Theme.font_color_light;
+                                                font-size: 20px;
+                                                text: "Name";
+                                                font-family: "Inter";
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+    
+                                                accepted => {
+                                                    add_exercise(add_exercise_name.text, combo.current-value);
+                                                    add_exercise_vis = !add_exercise_vis;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        combo := ComboBox {
+                                            height: 35px;
+                                            width: 80px;
+                                            model: ["Reps", "Time"];
+                                            current-value: "Reps";
+                                            current-index: 0;
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        Rectangle {
+                                            width: 80px;
+                                            height: 40px;
+                                            background: touch5.has-hover ? Theme.accent_hovered : Theme.accent;
+                                            border-radius: 10px;
+                                            border-width: 1px;
+                                            border-color: Theme.border_color;
+                                
+                                            Text {
+                                                text: "Save";
+                                                font-size: 20px;
+                                                font-family: "Inter";
+                                            }
+                            
+                                            touch5 := TouchArea {
+                                                clicked => {
+                                                    add_exercise(add_exercise_name.text, combo.current-value);
+                                                    add_exercise_vis = !add_exercise_vis;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Tab {
+                title: "Profiles";
+                VerticalBox {
+                    HorizontalBox {
+                        alignment: center;
+                        spacing: 15px;
+                        Rectangle {
+                            height: 30px;
+                            width: 30px;
+                            background: add_profile_vis ? (touch6.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch6.has-hover ? Theme.accent_hovered : Theme.accent);
+                            border-radius: 2px;
+                            
+                            Image {
+                                width: parent.width*0.6;
+                                height: parent.height*0.6;
+                                source: @image-url("resources/icon_plus.png");
+                            }
+        
+                            touch6 := TouchArea {
+                                enabled: !remove_profile_vis;
+                                clicked => {
+                                    add_profile_vis = !add_profile_vis;
+                                }
+                            }
+                        }
+                        
+                        Rectangle {
+                            height: 30px;
+                            width: 30px;
+                            background: remove_profile_vis ? (touch7.has-hover ? Theme.negative_accent_hovered : Theme.negative_accent) : (touch7.has-hover ? Theme.accent_hovered : Theme.accent);
+                            border-radius: 2px;
+        
+                            Image {
+                                width: parent.width*0.6;
+                                height: parent.height*0.5;
+                                source: @image-url("resources/icon_minus.png");
+                            }
+        
+                            touch7 := TouchArea {
+                                enabled: !add_profile_vis;
+                                clicked => {
+                                    remove_profile_vis = !remove_profile_vis;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if !add_profile_vis:
+                    Rectangle {
+                        ListView {
+                            for data[i] in profile_names:
+                            Rectangle {
+                                width: 205px;
+                                height: 40px;
+                                border-width: 5px;
+                                padding: 10px;
+                                
+                                HorizontalBox {
+                                    alignment: center;
+    
+                                    Rectangle {
+                                        width: remove_profile_vis ? 160px : 200px;
+                                        height: 35px;
+                                        border-width: 1.5px;
+                                        border-radius: 2px;
+                                        border-color: Theme.border_color;
+                                        background: touch8.has-hover ? Theme.accent_hovered : Theme.accent;
+                                        animate width {
+                                            easing: ease-in;
+                                            duration: 300ms;
+                                        }
+                    
+                                        HorizontalBox {
+                                            Text {
+                                                text: data;
+                                                font-size: 16px;
+                                                font-family: "Inter";
+                                            }
+                                        }
+
+                                        touch8 := TouchArea {
+                                            clicked => {
+                                                change_profile(data);
+                                            }
+                                        }
+                                    }
+                                    
+                                    if remove_profile_vis:
+                                    Rectangle {
+                                        width: 30px;
+                                        height: 30px;
+                                        background: touch9.has-hover ? Theme.accent_hovered : Theme.accent;
+                                        border-radius: 2px;
+    
+                                        Image {
+                                            width: parent.width*0.6;
+                                            height: parent.height*0.5;
+                                            source: @image-url("resources/icon_minus.png");
+                                        }
+    
+                                        touch9 := TouchArea {
+                                            clicked => {
+                                                remove_profile(profile_names[i]);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if add_profile_vis:
+                    VerticalBox {
+                        height: add_profile_vis ? 0px : parent.height;
+                        alignment: center;
+                        HorizontalBox {
+                            alignment: center;
+                            Rectangle {
+                                background: Theme.container1;
+                                width: 300px;
+                                height: 200px;
+                                
+                                VerticalBox {
+                                    spacing: 0px;
+                                    alignment: center;
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        
+                                        Rectangle {
+                                            width: 200px;
+                                            height: 35px;
+                                            border-radius: 3px;
+                                            border-width: 1.5px;
+                                            border-color: Theme.border_color;
+                                            background: Theme.container2;
+
+                                            add_profile_name := TextInput {
+                                                color: Theme.font_color_light;
+                                                font-size: 20px;
+                                                text: "Name";
+                                                font-family: "Inter";
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+    
+                                                accepted => {
+                                                    add_profile(add_profile_name.text);
+                                                    add_profile_vis = !add_profile_vis;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+
+                                        Rectangle {
+                                            width: 80px;
+                                            height: 40px;
+                                            background: touch10.has-hover ? Theme.accent_hovered : Theme.accent;
+                                
+                                            Text {
+                                                text: "Save";
+                                                font-size: 20px;
+                                                font-family: "Inter";
+                                            }
+                            
+                                            touch10 := TouchArea {
+                                                clicked => {
+                                                    add_profile(add_profile_name.text);
+                                                    add_profile_vis = !add_profile_vis;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

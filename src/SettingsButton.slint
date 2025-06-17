@@ -1,0 +1,26 @@
+import { Theme } from "Theme.slint";
+ 
+export component SettingsButton {
+    callback open_settings();
+
+    Rectangle {
+        border-radius: 10px;
+        width: 50px;
+        height: 50px;
+        x: -595px;
+        y: -395px;
+        
+        Image {
+            width: parent.width;
+            height: parent.height;
+            colorize: touch.has-hover ? Theme.accent_hovered : Theme.accent;
+            source: @image-url("resources/icon_menu.png");
+        }
+
+        touch := TouchArea {
+            clicked => {
+                open_settings();
+            }
+        }
+    }
+}
