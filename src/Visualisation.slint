@@ -32,16 +32,20 @@ export component Visualisation {
     in-out property <string> current_exercise: combo.current-value;
 
     Rectangle {
+        padding: 10px;
         width: 900px;
         height: 580px;
         background: Theme.container1;
 
         HorizontalBox {
             VerticalBox {
+                alignment: center;
                 //Übungsauswahl
                 combo := ComboBox {
                     width: 200px;
                     height: 35px;
+                    x: 10px;
+                    //y: 20px;
                     model: visualisable_exercise_names;
                     selected(current-value) => {
                         changed_visualisation_exercise(current_exercise);
@@ -49,15 +53,32 @@ export component Visualisation {
                 }
                 //General Daten
                 Rectangle {
+                    border-radius: 3px;
+                    border-color: Theme.accent;
+                    border-width: 1px;
+                    height: 120px;
+                    padding: 10px;
                     VerticalBox {
+                        alignment: start;
                         Text {
-                            text: visualisation_data.general.reps;
+                            text: "Reps: " + visualisation_data.general.reps;
+                            font-size: 25px;
+                            font-family: "Inter";
+                            color: Theme.accent;
                         }
                         Text {
-                            text: visualisation_data.general.amount;
+                            text: "Amount: " + visualisation_data.general.amount;
+                            font-size: 25px;
+                            font-family: "Inter";
+                            color: Theme.accent;
+
                         }
                         Text {
-                            text: visualisation_data.general.max;
+                            text: "Max: " + visualisation_data.general.max;
+                            font-size: 25px;
+                            font-family: "Inter";
+                            color: Theme.accent;
+
                         }
                     }
                 }
@@ -69,6 +90,9 @@ export component Visualisation {
                     HorizontalBox {
                         Rectangle {
                             background: Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
                             Text {
                                 text: "Day";
                             }
@@ -78,6 +102,10 @@ export component Visualisation {
                         }
                         Rectangle {
                             background: Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
+
                             Text {
                                 text: "Week";
                             }
@@ -88,6 +116,9 @@ export component Visualisation {
                         }
                         Rectangle {
                             background: Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
                             Text {
                                 text: "Month";
                             }
@@ -98,6 +129,9 @@ export component Visualisation {
                         }
                         Rectangle {
                             background: Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
                             Text {
                                 text: "Year";
                             }
@@ -111,9 +145,27 @@ export component Visualisation {
                 //Graph
                 Rectangle {
                     background: Theme.container2;
-                    for data_point[i] in visualisation_data.chrono: Point {
-                        x: 20px + (50/visualisation_data.chrono.length * i) * 10px;
+                    for data_point[i] in visualisation_data.chrono: point := Point {
+                        x: 20px + (52/visualisation_data.chrono.length * i) * 12px;
                         y: 450px - (data_point.value/visualisation_data.highest-value) * 350px;
+                        touch := TouchArea {}
+                        Rectangle {
+                            background: Theme.container1;
+                            width: 60px;
+                            height: 30px;
+                            x: -point.width - 60px;
+                            y: -point.height - (self.height - 2px); 
+                            visible: touch.has-hover;
+                            border-radius: 3px;
+                            border-color: Theme.accent;
+                            border-width: 1px;
+                            z: -1;
+                            Text {
+                                text: data-point.value;
+                                font-size: 18px;
+                                font-family: "Inter";
+                            }
+                        }
                     }
                 }
             }
@@ -123,4 +175,3 @@ export component Visualisation {
 
 //TODO ordentlich angeordnet
 //TODO Skalen
-//TODO Wenn Hover genaue angaben
