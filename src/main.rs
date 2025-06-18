@@ -1,4 +1,4 @@
-//#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_precision_locc)]
 #![allow(clippy::too_many_lines)]
@@ -20,10 +20,10 @@ use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
 //REMINDER src/...
-const PATH_TO_CONFIG: &str = "src/resources/config.toml";
-const PATH_TO_DATA: &str =   "src/resources/exercise_data.toml";
-const PATH_TO_CHRONO: &str = "src/resources/chronological_data.txt";
-const PATH_TO_SOUND: &str =  "src/resources/Sound.mp3";
+const PATH_TO_CONFIG: &str = "resources/config.toml";
+const PATH_TO_DATA: &str =   "resources/exercise_data.toml";
+const PATH_TO_CHRONO: &str = "resources/chronological_data.txt";
+const PATH_TO_SOUND: &str =  "resources/Sound.mp3";
 static mut VOLUME: f32 = 0.3;
 static VISUALISATION_DATA: Lazy<Mutex<(HashMap<String,(i32,i32,i32)>, HashMap<String, Vec<(NaiveDate, i32)>>)>> = Lazy::new(|| Mutex::new((HashMap::new(), HashMap::new())));
 
@@ -340,7 +340,7 @@ fn create_visualisation_data() {
     for (exercise_name, exercise_data) in doc.as_table() {
         if let Some(exercise_data_table) = exercise_data.as_table() {
             let tuple = (
-                exercise_data_table["reps"].as_integer().unwrap() as i32, 
+                exercise_data_table.get("reps").or_else(|| {exercise_data_table.get("time")}).unwrap().as_integer().unwrap() as i32,
                 exercise_data_table["amount"].as_integer().unwrap() as i32, 
                 exercise_data_table["max"].as_integer().unwrap() as i32);
             general_map.insert(exercise_name.to_string(), tuple);

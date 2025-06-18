@@ -1,17 +1,21 @@
-floor = 500
-ceil = 900
-doubles = false
-last_exercise = "Planche"
+floor = 600
+ceil = 1500
+doubles = true
+last_exercise = "Pushup"
 current_profile = "normal"
-volume = 58.0
+volume = 30.0
 
 [exercises]
-Pullup = { type = "Reps", profiles = { normal = false, nigger = false } }
-Pushup = { type = "Reps", profiles = { normal = false, nigger = false } }
-Planche = { type = "Reps", profiles = { normal = true, nigger = false } }
-Planche-Pushup = { type = "Reps", profiles = { normal = false, nigger = false } }
-Abs = { type = "Reps", profiles = { normal = false, nigger = false } }
-Lever = { type = "Reps", profiles = { normal = false, nigger = false } }
-Swing = { type = "Reps", profiles = { normal = false, nigger = false } }
-Handstand = { type = "Reps", profiles = { normal = false, nigger = false } }
-Stretch = { type = "Reps", profiles = { normal = false, nigger = false } }
+Pullup = { type = "Reps", profiles = { normal = false, Beinreha = false } }
+Pushup = { type = "Reps", profiles = { normal = true , Beinreha = false } }
+Planche = { type = "Reps", profiles = { normal = true , Beinreha = false } }
+Planche-Pushup = { type = "Reps", profiles = { normal = false , Beinreha = false } }
+Lean = { type = "Reps", profiles = {normal = false , Beinreha = false }}
+Abs = { type = "Reps", profiles = {normal = false , Beinreha = false }}
+Lever = { type = "Reps", profiles = {normal = false , Beinreha = false }}
+Sally = { type = "Time", profiles = {normal = false , Beinreha = false }}
+Swing = { type = "Reps", profiles = {normal = false , Beinreha = false }}
+Handstand = { type = "Reps", profiles = { normal = false , Beinreha = false } }
+Stretch = { type = "Reps", profiles = { normal = false , Beinreha = false } }
+Pistol = { type = "Reps", profiles = { normal = false , Beinreha = true } }
+Balance = { type = "Reps", profiles = {normal = false ,  Beinreha = true } }
