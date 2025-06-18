@@ -1,27 +1,33 @@
-#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+//#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_precision_locc)]
 #![allow(clippy::too_many_lines)]
 
 use toml_edit::{value, DocumentMut, Entry, InlineEntry, Item, Table, TableLike};
 use std::fs;
-use std::time::Instant;
+use std::hash::Hash;
+use std::os::windows::io::AsHandle;
+use std::time::{Instant};
 use slint::{SharedString, Timer, TimerMode, ToSharedString, ModelRc, VecModel, Weak};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fs::{File, OpenOptions};
-use std::io::{BufReader, Write};
+use std::io::{BufRead, BufReader, Write};
 use rodio::{Decoder, OutputStream, Sink, Source};
-use chrono::Local;
+use chrono::{Datelike, Local, NaiveDate, Duration};
+use std::collections::HashMap;
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
 
 //REMINDER src/...
-const PATH_TO_CONFIG: &str = "resources/config.toml";
-const PATH_TO_DATA: &str =   "resources/exercise_data.toml";
-const PATH_TO_CHRONO: &str = "resources/chronological_data.txt";
-const PATH_TO_SOUND: &str =  "resources/Sound.mp3";
+const PATH_TO_CONFIG: &str = "src/resources/config.toml";
+const PATH_TO_DATA: &str =   "src/resources/exercise_data.toml";
+const PATH_TO_CHRONO: &str = "src/resources/chronological_data.txt";
+const PATH_TO_SOUND: &str =  "src/resources/Sound.mp3";
 static mut VOLUME: f32 = 0.3;
+static VISUALISATION_DATA: Lazy<Mutex<(HashMap<String,(i32,i32,i32)>, HashMap<String, Vec<(NaiveDate, i32)>>)>> = Lazy::new(|| Mutex::new((HashMap::new(), HashMap::new())));
 
-slint::slint! {export { MainWindow } from "src/main.slint";}
+slint::slint! {export { MainWindow, GeneralPart, ChronoElement, VisData } from "src/main.slint";}
 
 fn add_exercise(exercise: &str, exercise_type: &str) {
     let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
@@ -86,7 +92,7 @@ fn add_reps(exercise: &str, reps: i32) {
             fs::write(PATH_TO_DATA, doc.to_string()).expect("Fehler beim Schreiben!");
 
             let mut chrono: File = OpenOptions::new().append(true).create(true).open(PATH_TO_CHRONO).unwrap();
-            writeln!(chrono, "[{}]:{}:{}", Local::now().format("%Y-%m-%d"),exercise, reps);
+            writeln!(chrono, "[{}]:{}:{}", Local::now().format("%Y-%m-%d &H:%M:%S"),exercise, reps);
         }
     }
 }
@@ -326,6 +332,120 @@ fn get_volume() -> i32 {
     return doc["volume"].as_float().unwrap() as i32;
 }
 
+fn create_visualisation_data() {
+    let toml_str: String = fs::read_to_string(PATH_TO_DATA).expect("Fehler beim lesen!");
+    let mut doc: DocumentMut = toml_str.parse::<DocumentMut>().expect("Fehler beim parsen!");
+
+    let mut general_map = HashMap::new();
+    for (exercise_name, exercise_data) in doc.as_table() {
+        if let Some(exercise_data_table) = exercise_data.as_table() {
+            let tuple = (
+                exercise_data_table["reps"].as_integer().unwrap() as i32, 
+                exercise_data_table["amount"].as_integer().unwrap() as i32, 
+                exercise_data_table["max"].as_integer().unwrap() as i32);
+            general_map.insert(exercise_name.to_string(), tuple);
+        }
+    }
+
+    let mut chrono_map: HashMap<String, Vec<(NaiveDate, i32)>> = HashMap::new();
+    let chrono: BufReader<File> = BufReader::new(File::open(PATH_TO_CHRONO).unwrap());
+    for line in chrono.lines() {
+        match line {
+            Ok(raw_line) => {
+                let exercise_name = raw_line.split(':').collect::<Vec<&str>>()[1].to_string();
+                let exercise_data = (NaiveDate::parse_from_str(raw_line.chars().skip(1).take(10).collect::<String>().as_str(), "%Y-%m-%d").unwrap(), raw_line.split(":").collect::<Vec<&str>>()[2].parse::<i32>().unwrap());
+                chrono_map.entry(exercise_name).or_default().push(exercise_data);
+            },
+            Err(e) => {}
+        }
+    }
+
+    {
+        let mut vis = VISUALISATION_DATA.lock().unwrap();
+        vis.0 = general_map;
+        vis.1 = chrono_map;
+    }
+}
+
+fn get_visualisable_exercises() -> Vec<SharedString> {
+    let vis_data = VISUALISATION_DATA.lock().unwrap();
+    let general = vis_data.0.clone();
+    let chrono = vis_data.1.clone();
+
+    let mut visualisable_exercise_names = vec![];
+    let all_exercises = get_exercise_settings().iter().map(|item| item.name.clone().to_string()).collect::<Vec<String>>();
+    for exercise in all_exercises {
+        if chrono.contains_key(&exercise) {
+            visualisable_exercise_names.push(exercise.clone());
+        }
+    }
+    visualisable_exercise_names.iter().map(|x| x.into()).collect()
+}
+
+fn visualisation_helper(exercise: &str, interval: &str) -> VisData {
+    let vis_data = VISUALISATION_DATA.lock().unwrap();
+    let general = vis_data.0.clone();
+    let chrono = vis_data.1.clone();
+
+    let general_extracted = general[exercise];
+
+    let mut chrono_extracted = chrono[exercise].clone();
+    let first_entry = chrono_extracted[0].0;
+    let mut interval_start: NaiveDate = match interval {
+        "year" => {
+            first_entry.with_month(1).unwrap().with_day(1).unwrap()
+        },
+        "month" => {
+            first_entry.with_day(1).unwrap()
+        },
+        "week" => {
+            first_entry - Duration::days(i64::from(first_entry.weekday().num_days_from_monday()))
+        },
+        _ => {
+            first_entry
+        }
+    };
+    let now = chrono::Local::now().date_naive();
+
+
+    let mut chrono_grouped: Vec<(NaiveDate, i32)> = vec![];
+    while interval_start < now && !chrono_extracted.is_empty() {
+        let interval_stepped = match interval {
+            "year" => {
+                interval_start.with_year(interval_start.year() + 1).unwrap()
+            },
+            "month" => {
+                let mut month = interval_start.month() + 1;
+                let mut year = interval_start.year();
+                if month > 12 {
+                    month = 1;
+                    year += 1;
+                }
+                interval_start.with_year(year).and_then(|d| d.with_month(month)).unwrap()
+            },
+            "week" => {
+                interval_start + Duration::days(7)
+            },
+            _ => {
+                interval_start + Duration::days(1)
+            }
+        };
+
+        let mut interval_sum: i32 = chrono_extracted.iter().filter(|(date, _)| *date>=interval_start && *date<interval_stepped).map(|(_, reps)| *reps).sum();
+        chrono_grouped.push((interval_start, interval_sum));
+        interval_start = interval_stepped;
+    }
+
+    let general: GeneralPart = GeneralPart {
+        reps: general_extracted.0,
+        amount: general_extracted.1,
+        max: general_extracted.2,
+    };
+    let mut chrono_set = ModelRc::new(VecModel::from(chrono_grouped.iter().map(|(date,value)| ChronoElement {date: (date.to_string().into()), value: (*value)}).collect::<Vec<ChronoElement>>()));
+    let mut vis_data: VisData = VisData { chrono: (chrono_set), general: (general), highest_value: (chrono_grouped.iter().map(|x| x.1).max().unwrap()) };
+    return vis_data;
+}
+
 fn main() {
     //Slint
     let ui = MainWindow::new().unwrap();
@@ -347,6 +467,7 @@ fn main() {
         handle.set_exercises(ModelRc::new(VecModel::from(exercise_structs)));
         let exercise_names: Vec<SharedString> = exercise_structs_clone.iter().map(|item| item.name.clone()).collect();
         handle.set_exercise_names(ModelRc::new(VecModel::from(exercise_names)));
+        handle.set_visualisable_exercise_names(ModelRc::new(VecModel::from(get_visualisable_exercises())));
         handle.set_profile_names(ModelRc::new(VecModel::from(get_profile_names())));
         handle.set_current_profile(get_current_profile().into());
         handle.set_volume(get_volume());
@@ -366,6 +487,9 @@ fn main() {
     let ui_handle_add_profile: Weak<MainWindow> = ui_handle.clone();
     let ui_handle_remove_profile: Weak<MainWindow> = ui_handle.clone();
     let ui_handle_change_profile: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_vis: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_changed_vis_exercise: Weak<MainWindow> = ui_handle.clone();
+    let ui_handle_changed_vis_interval: Weak<MainWindow> = ui_handle.clone();
 
     let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
     let chosen_exercise_rep_clone: Rc<RefCell<String>> = chosen_exercise.clone();
@@ -512,9 +636,34 @@ fn main() {
         change_volume(volume);
     });
 
+    ui.on_load_visualisation_data(move || {
+        create_visualisation_data();
+        
+        if let Some(handle) = ui_handle_vis.upgrade() {
+            let data = visualisation_helper(get_visualisable_exercises().first().unwrap().as_str(), "day");
+            handle.set_visualisable_exercise_names(ModelRc::new(VecModel::from(get_visualisable_exercises())));
+            handle.set_visualisation_data(data);
+        }
+    });
+
+    ui.on_changed_visualisation_exercise(move |exercise: SharedString| {
+        if let Some(handle) = ui_handle_changed_vis_exercise.upgrade() {
+            let data = visualisation_helper(exercise.as_str(), "day");
+            handle.set_visualisation_data(data);
+        }
+    });
+
+    ui.on_changed_visualisation_interval(move |exercise: SharedString, interval: SharedString| {
+        if let Some(handle) = ui_handle_changed_vis_interval.upgrade() {
+            let data = visualisation_helper(exercise.as_str(), interval.as_str());
+            handle.set_visualisation_data(data);
+        }
+    });
+
     ui.run().unwrap();
 }
 
-//TODO daten einsehen können
+//REMINDER vllt einstellen wieviele daten angezeigt werden 
 //TODO daten in diagrammen sehen können
+//TODO mehrere lieder
 //TODO prioritize

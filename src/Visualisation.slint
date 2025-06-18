@@ -1,0 +1,126 @@
+import { TabWidget, ComboBox, HorizontalBox, VerticalBox } from "std-widgets.slint";
+import { Theme } from "Theme.slint";
+
+export struct GeneralPart {
+    reps: int,
+    amount: int,
+    max: int,
+}
+export struct ChronoElement {
+    date: string,
+    value: int,
+}
+export struct VisData {
+    general: GeneralPart,
+    chrono: [ChronoElement],
+    highest_value: int
+}
+
+component Point inherits Rectangle{
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background: Theme.accent;
+}
+
+export component Visualisation {
+    callback changed_visualisation_exercise(string);
+    callback changed_visualisation_interval(string, string);
+
+    in property <[string]> visualisable_exercise_names;
+    in property <VisData> visualisation_data;
+    in-out property <string> current_exercise: combo.current-value;
+
+    Rectangle {
+        width: 900px;
+        height: 580px;
+        background: Theme.container1;
+
+        HorizontalBox {
+            VerticalBox {
+                //Übungsauswahl
+                combo := ComboBox {
+                    width: 200px;
+                    height: 35px;
+                    model: visualisable_exercise_names;
+                    selected(current-value) => {
+                        changed_visualisation_exercise(current_exercise);
+                    }
+                }
+                //General Daten
+                Rectangle {
+                    VerticalBox {
+                        Text {
+                            text: visualisation_data.general.reps;
+                        }
+                        Text {
+                            text: visualisation_data.general.amount;
+                        }
+                        Text {
+                            text: visualisation_data.general.max;
+                        }
+                    }
+                }
+            }
+            VerticalBox {
+                //Zeitintervalle
+                Rectangle {
+                    height: 50px;
+                    HorizontalBox {
+                        Rectangle {
+                            background: Theme.container2;
+                            Text {
+                                text: "Day";
+                            }
+                            TouchArea {
+                                clicked => {changed_visualisation_interval(current_exercise, "day");}
+                            }
+                        }
+                        Rectangle {
+                            background: Theme.container2;
+                            Text {
+                                text: "Week";
+                            }
+
+                            TouchArea {
+                                clicked => {changed_visualisation_interval(current_exercise, "week");}
+                            }
+                        }
+                        Rectangle {
+                            background: Theme.container2;
+                            Text {
+                                text: "Month";
+                            }
+
+                            TouchArea {
+                                clicked => {changed_visualisation_interval(current_exercise, "month");}
+                            }
+                        }
+                        Rectangle {
+                            background: Theme.container2;
+                            Text {
+                                text: "Year";
+                            }
+
+                            TouchArea {
+                                clicked => {changed_visualisation_interval(current_exercise, "year");}
+                            }
+                        }
+                    }
+                }
+                //Graph
+                Rectangle {
+                    background: Theme.container2;
+                    for data_point[i] in visualisation_data.chrono: Point {
+                        x: 20px + (50/visualisation_data.chrono.length * i) * 10px;
+                        y: 450px - (data_point.value/visualisation_data.highest-value) * 350px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+//TODO ordentlich angeordnet
+//TODO Skalen
+//TODO Wenn Hover genaue angaben

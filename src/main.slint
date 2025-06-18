@@ -4,12 +4,15 @@ import { BasicButton } from "BasicButton.slint";
 import { SettingsButton } from "SettingsButton.slint";
 import { Settings, Exercise } from "Settings.slint";
 import { Theme } from "Theme.slint";
+import { Visualisation, GeneralPart, ChronoElement, VisData} from "Visualisation.slint";
+import { VisualisationButton } from "VisualisationButton.slint";
 
 //Enums
 enum CurrentView {
     BasicButton,
     RepInput,
-    Settings
+    Settings,
+    Visualisation
 }
 
 //MainWidget
@@ -25,6 +28,9 @@ export component MainWindow inherits Window {
     callback remove_profile(string);
     callback change_profile(string);
     callback changed_volume(int);
+    callback load_visualisation_data();
+    callback changed_visualisation_exercise(string);
+    callback changed_visualisation_interval(string, string);
     
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
@@ -46,9 +52,13 @@ export component MainWindow inherits Window {
     in-out property <bool> setting_general_doubles: true;
     in-out property <[Exercise]> exercises;
     in-out property <[string]> exercise_names;
+    in-out property <[string]> visualisable_exercise_names;
     in-out property <[string]> profile_names;
     in-out property <string> current_profile;
     in-out property <int> volume;
+
+    //Visualisation
+    in-out property <VisData> visualisation_data;
 
     width: 1200px;
     height: 800px;
@@ -123,4 +133,32 @@ export component MainWindow inherits Window {
             changed_volume(volume);
         }
     }
+
+    //TODO wenn button geklickt dann callback zu rust sollen daten geladen werden
+    VisualisationButton {
+        property <CurrentView> last_view;
+        open_visualisation => {
+            if current_view == CurrentView.Visualisation {
+                current_view = last_view;
+            } else {
+                last_view = current_view;
+                current_view = CurrentView.Visualisation;
+            }
+            load_visualisation_data();
+        }
+    }
+
+    Visualisation {
+        visible: current_view == CurrentView.Visualisation;
+        visualisable_exercise_names: visualisable_exercise_names;
+        visualisation_data: visualisation_data;
+        changed_visualisation_exercise(exercise) => {
+            changed_visualisation_exercise(exercise);
+        }
+        changed_visualisation_interval(exercise, interval) => {
+            changed_visualisation_interval(exercise, interval);
+        }
+    }
 }
+
+export { GeneralPart, ChronoElement, VisData }

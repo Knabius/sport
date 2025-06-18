@@ -1,12 +1,13 @@
 [package]
 name = "sport"
-version = "1.3.0"
+version = "1.3.1"
 edition = "2024"
 
 [dependencies]
 chrono = "0.4.41"
 fs = "0.0.5"
 io = "0.0.2"
+once_cell = "1.21.3"
 rand = "0.9.0"
 rodio = { version = "0.17", default-features = false, features = ["mp3"] }
 slint = { version = "1.10.0", default-features = true }
