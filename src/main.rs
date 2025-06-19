@@ -410,7 +410,7 @@ fn visualisation_helper(exercise: &str, interval: &str) -> VisData {
 
 
     let mut chrono_grouped: Vec<(NaiveDate, i32)> = vec![];
-    while interval_start < now && !chrono_extracted.is_empty() {
+    while interval_start <= now && !chrono_extracted.is_empty() {
         let interval_stepped = match interval {
             "year" => {
                 interval_start.with_year(interval_start.year() + 1).unwrap()
