@@ -18,12 +18,13 @@ use chrono::{Datelike, Local, NaiveDate, Duration};
 use std::collections::HashMap;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
+use rand::*;
 
 //REMINDER src/...
 const PATH_TO_CONFIG: &str = "src/resources/config.toml";
 const PATH_TO_DATA: &str =   "src/resources/exercise_data.toml";
 const PATH_TO_CHRONO: &str = "src/resources/chronological_data.txt";
-const PATH_TO_SOUND: &str =  "src/resources/Sound.mp3";
+const PATH_TO_SOUNDS: &str = "src/resources/sounds/";
 static mut VOLUME: f32 = 0.3;
 static VISUALISATION_DATA: Lazy<Mutex<(HashMap<String,(i32,i32,i32)>, HashMap<String, Vec<(NaiveDate, i32)>>)>> = Lazy::new(|| Mutex::new((HashMap::new(), HashMap::new())));
 
@@ -92,7 +93,7 @@ fn add_reps(exercise: &str, reps: i32) {
             fs::write(PATH_TO_DATA, doc.to_string()).expect("Fehler beim Schreiben!");
 
             let mut chrono: File = OpenOptions::new().append(true).create(true).open(PATH_TO_CHRONO).unwrap();
-            writeln!(chrono, "[{}]:{}:{}", Local::now().format("%Y-%m-%d &H:%M:%S"),exercise, reps);
+            writeln!(chrono, "[{}]:{}:{}", Local::now().format("%Y-%m-%d"),exercise, reps);
         }
     }
 }
@@ -446,6 +447,42 @@ fn visualisation_helper(exercise: &str, interval: &str) -> VisData {
     return vis_data;
 }
 
+fn find_mp3_files(dir_path: &str) -> Vec<String> {    
+    let entries = fs::read_dir(dir_path)
+        .expect(&format!("Konnte den Ordner nicht lesen: {}", dir_path));
+    
+    let mut mp3_files = Vec::new();
+
+    for entry_result in entries {
+        let entry = entry_result.unwrap();
+        let path = entry.path();
+
+        if path.is_file() {
+            if let Some(path_str) = path.to_str() {
+                if path_str.to_lowercase().ends_with(".mp3") {
+                    mp3_files.push(path_str.to_string());
+                }
+            }
+        }
+    }
+
+    mp3_files
+}
+
+fn get_random_sound() -> String {
+    let all_paths = find_mp3_files(PATH_TO_SOUNDS);
+
+    if all_paths.is_empty() {
+        panic!("Keine MP3-Dateien im Ordner gefunden: {}", PATH_TO_SOUNDS);
+    }
+    
+    //let mut rng = rand::rng();
+    let index = rand::random_range(0..all_paths.len());
+    
+    println!("{:?}", all_paths[index]);
+    all_paths[index].clone()
+}
+
 fn main() {
     //Slint
     let ui = MainWindow::new().unwrap();
@@ -473,6 +510,9 @@ fn main() {
         handle.set_volume(get_volume());
     }
 
+    let sink_for_start = sink.clone();
+    let sink_for_reps = sink.clone();
+
     // true => time-loop inaktiv
     // false => time-loop aktiv
 
@@ -493,8 +533,6 @@ fn main() {
 
     let chosen_exercise:Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
     let chosen_exercise_rep_clone: Rc<RefCell<String>> = chosen_exercise.clone();
-
-    let sink_clone: Rc<RefCell<Sink>> = sink.clone();
 
     ui.on_start_pressed(move |floor: SharedString, ceil: SharedString| {
 
@@ -520,7 +558,7 @@ fn main() {
                     let start_button_status_deep: Rc<RefCell<bool>> = start_button_status_clone.clone();
                     let ui_handle_deep: Weak<MainWindow> = ui_handle.clone();
 
-                    let sink: Rc<RefCell<Sink>> = sink.clone();
+                    let sink_for_timer: Rc<RefCell<Sink>> = sink_for_start.clone();
 
                     timer.start(TimerMode::Repeated, std::time::Duration::from_millis(500), move || {
                         let duration: f64 = start_time.elapsed().as_secs_f64();
@@ -536,11 +574,19 @@ fn main() {
                             }
 
                             //Audio
-                            unsafe {
-                                let boing: rodio::source::Amplify<Decoder<BufReader<File>>> = Decoder::new(BufReader::new(File::open(PATH_TO_SOUND).unwrap())).unwrap().amplify(VOLUME/100.0);
-                                sink.borrow_mut().append(boing);
-                                sink.borrow_mut().play();
-                            }    
+                            let mut sink = sink_for_timer.borrow_mut();
+                            sink.clear();
+
+                            let file_path = get_random_sound();
+                            println!(">>> SPIELE NEUEN SOUND: {} <<<", file_path);
+                            let file = File::open(file_path).expect("Konnte Sounddatei nicht öffnen");
+                            let source = Decoder::new(BufReader::new(file)).expect("Konnte Sound nicht dekodieren");
+                            
+                            let current_volume = unsafe { VOLUME };
+                            let boing = source.amplify(current_volume / 100.0);
+
+                            sink.append(boing);
+                            sink.play();
                         
                         } else if !*is_running_deep.borrow() {
                             timer_clone.stop();
@@ -569,7 +615,7 @@ fn main() {
             handle.set_current_view(CurrentView::BasicButton);
         }
         add_reps(chosen_exercise_rep_clone.borrow().as_str(), reps.parse::<i32>().unwrap());
-        sink_clone.borrow_mut().clear();
+        sink_for_reps.borrow_mut().clear();
     });
 
     ui.on_changed_general_settings(move |setting_doubles: bool| {

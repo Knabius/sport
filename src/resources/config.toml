@@ -1,9 +1,9 @@
-floor = 600
-ceil = 1500
+floor = 1
+ceil = 5
 doubles = true
-last_exercise = "Pushup"
+last_exercise = "Planche"
 current_profile = "normal"
-volume = 30.0
+volume = 67.0
 
 [exercises]
 Pullup = { type = "Reps", profiles = { normal = false, Beinreha = false } }
