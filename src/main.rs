@@ -712,6 +712,4 @@ fn main() {
 }
 
 //REMINDER vllt einstellen wieviele daten angezeigt werden 
-//TODO daten in diagrammen sehen können
-//TODO mehrere lieder
 //TODO prioritize

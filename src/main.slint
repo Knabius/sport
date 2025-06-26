@@ -90,7 +90,7 @@ export component MainWindow inherits Window {
         property <CurrentView> last_view;
         open_settings => {
             if current_view == CurrentView.Settings {
-                current_view = last_view;
+                current_view = CurrentView.BasicButton;
             } else {
                 last_view = current_view;
                 current_view = CurrentView.Settings;
@@ -134,12 +134,11 @@ export component MainWindow inherits Window {
         }
     }
 
-    //TODO wenn button geklickt dann callback zu rust sollen daten geladen werden
     VisualisationButton {
         property <CurrentView> last_view;
         open_visualisation => {
             if current_view == CurrentView.Visualisation {
-                current_view = last_view;
+                current_view = CurrentView.BasicButton;
             } else {
                 last_view = current_view;
                 current_view = CurrentView.Visualisation;
