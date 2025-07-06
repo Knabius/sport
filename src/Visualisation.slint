@@ -17,9 +17,9 @@ export struct VisData {
 }
 
 component Point inherits Rectangle{
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
+    width: 9px;
+    height: self.width;
+    border-radius: self.width/2;
     background: Theme.accent;
 }
 
@@ -144,6 +144,19 @@ export component Visualisation {
                 }
                 //Graph
                 Rectangle {
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: 3px;
+                        height: 465px;
+                    }
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        y: 477.5px;
+                        width: parent.width - 20px;
+                        height: 3px;
+                    }
                     background: Theme.container2;
                     for data_point[i] in visualisation_data.chrono: point := Point {
                         x: 20px + (52/visualisation_data.chrono.length * i) * 12px;
@@ -176,3 +189,4 @@ export component Visualisation {
 //TODO ordentlich angeordnet
 //TODO Skalen
 //TODO kleiner Text seit wann die Daten gewonnen gesammelt wurden
+//maybe linien
