@@ -321,7 +321,7 @@ export component Visualisation {
                         }
                         property <float> x_end: (52.0 / visualisation_data.chrono.length) * 12;
                         property <int> y_end: ((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5));
-                        if (y_end >= 0): Path {
+                        if (y_end >= 0 && i != (visualisation_data.chrono.length - 1)): Path {
                             visible: lines_visible;
                             width: (52.0 / visualisation_data.chrono.length) * 12px + 8px;
                             height: ((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5)) * 1px + 3px;
