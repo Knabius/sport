@@ -319,25 +319,31 @@ export component Visualisation {
                                 y: 20px;
                             }
                         }
-                        Rectangle {
+                        property <float> x_end: (52.0 / visualisation_data.chrono.length) * 12;
+                        property <int> y_end: ((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5));
+                        if (y_end >= 0): Path {
                             visible: lines_visible;
-                            z: 20;
-                            x: 1px * sqrt(pow(visualisation_data.chrono[i+1].value - visualisation_data.chrono[i].value, 2) + pow((52/visualisation_data.chrono.length) * 12,2))/4;
-                            property <length> len: 1px * sqrt(pow(visualisation_data.chrono[i+1].value - visualisation_data.chrono[i].value, 2) + pow((52/visualisation_data.chrono.length) * 12,2));
-                            property <angle> angle: asin((visualisation_data.chrono[i+1].value - visualisation_data.chrono[i].value)/((52/visualisation_data.chrono.length) * 12));
-                            height: 2px;
-                            width: len;
-                            background: Theme.accent;
-                        }
-                        Path {
-                            width: 200px;
-                            height: 200px;
-                            x: point.width/2;
-                            y: point.height/2;
+                            width: (52.0 / visualisation_data.chrono.length) * 12px + 8px;
+                            height: ((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5)) * 1px + 3px;
+                            x: 1.5px;
+                            y: 3px;
                             fill: transparent;
                             stroke: Theme.accent;
                             stroke-width: 2px;
-                            commands: "M 0 0 L " + (52/visualisation_data.chrono.length) * 12 + " " + ((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5));
+                            MoveTo { x: 0; y: 0; }
+                            LineTo { x: x_end; y: y_end; }
+                        }
+                        if (y_end < 0): Path {
+                            visible: lines_visible;
+                            width: (52.0 / visualisation_data.chrono.length) * 12px + 8px;
+                            height: abs(((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5)) * 1px) + 3px;
+                            x: 1.5px;
+                            y: (((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5)) * 1px);
+                            fill: transparent;
+                            stroke: Theme.accent;
+                            stroke-width: 2px;
+                            MoveTo { x: 0; y: 0; }
+                            LineTo { x: x_end; y: y_end; }
                         }
                     }
                 }
@@ -346,5 +352,5 @@ export component Visualisation {
     }
 }
 
+
 //TODO anzahl punkte verändern (intervall)
-//TODO linienmodus
