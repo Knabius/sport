@@ -30,6 +30,7 @@ export component Visualisation {
     in property <[string]> visualisable_exercise_names;
     in property <VisData> visualisation_data;
     in-out property <string> current_exercise: combo.current-value;
+    property <bool> lines_visible: false;
 
     Rectangle {
         padding: 10px;
@@ -147,11 +148,25 @@ export component Visualisation {
                                 clicked => {changed_visualisation_interval(current_exercise, "year");}
                             }
                         }
+                        Rectangle {
+                            background: Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
+                            Text {
+                                text: "Lines";
+                            }
+
+                            TouchArea {
+                                clicked => {lines_visible = !lines_visible;}
+                            }
+                        }
                     }
                 }
                 //Graph
                 Rectangle {
-                    in property <length> ylimit: 430px;
+                    property <length> ylimit: 430px;
+                    property <int> ylimitint: 430;
                     //y-axis
                     Rectangle {
                         background: Theme.container1;
@@ -303,6 +318,26 @@ export component Visualisation {
                                 font-family: "Inter";
                                 y: 20px;
                             }
+                        }
+                        Rectangle {
+                            visible: lines_visible;
+                            z: 20;
+                            x: 1px * sqrt(pow(visualisation_data.chrono[i+1].value - visualisation_data.chrono[i].value, 2) + pow((52/visualisation_data.chrono.length) * 12,2))/4;
+                            property <length> len: 1px * sqrt(pow(visualisation_data.chrono[i+1].value - visualisation_data.chrono[i].value, 2) + pow((52/visualisation_data.chrono.length) * 12,2));
+                            property <angle> angle: asin((visualisation_data.chrono[i+1].value - visualisation_data.chrono[i].value)/((52/visualisation_data.chrono.length) * 12));
+                            height: 2px;
+                            width: len;
+                            background: Theme.accent;
+                        }
+                        Path {
+                            width: 200px;
+                            height: 200px;
+                            x: point.width/2;
+                            y: point.height/2;
+                            fill: transparent;
+                            stroke: Theme.accent;
+                            stroke-width: 2px;
+                            commands: "M 0 0 L " + (52/visualisation_data.chrono.length) * 12 + " " + ((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5));
                         }
                     }
                 }
