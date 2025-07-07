@@ -82,6 +82,13 @@ export component Visualisation {
                         }
                     }
                 }
+                Text {
+                    text: "Since: " + visualisation_data.chrono[0].date;
+                    font-size: 18px;
+                    font-family: "Inter";
+                    horizontal-alignment: center;
+                    color: Theme.font_color_dark;
+                }
             }
             VerticalBox {
                 //Zeitintervalle
@@ -144,30 +151,140 @@ export component Visualisation {
                 }
                 //Graph
                 Rectangle {
+                    in property <length> ylimit: 430px;
+                    //y-axis
                     Rectangle {
                         background: Theme.container1;
                         x: 10px;
                         width: 3px;
                         height: 465px;
+                    }                    
+                    //bar1
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: 20px;
+                        height: 3px;
+                        y: 460px - (1/1) * ylimit;
+                        Text {
+                            text: visualisation_data.highest-value;
+                            x: 5px;
+                            y: -15px;
+                            color: Theme.font_color_dark;
+                            font-family: "Inter";
+                            font-size: 14px;
+                        }
                     }
                     Rectangle {
                         background: Theme.container1;
                         x: 10px;
-                        y: 477.5px;
                         width: parent.width - 20px;
+                        height: 1px;
+                        y: 460px - (1/1) * ylimit + 1.5px;
+                    }
+                    //bar0.75
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: 20px;
                         height: 3px;
+                        y: 460px - (0.75/1) * ylimit;
+                        Text {
+                            text: visualisation_data.highest-value*0.75;
+                            x: 5px;
+                            y: -15px;
+                            color: Theme.font_color_dark;
+                            font-family: "Inter";
+                            font-size: 14px;
+                        }
+                    }
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: parent.width - 20px;
+                        height: 1px;
+                        y: 460px - (0.75/1) * ylimit + 1px;
+                    }
+                    //bar0.5
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: 20px;
+                        height: 3px;
+                        y: 460px - (0.5/1) * ylimit;
+                        Text {
+                            text: visualisation_data.highest-value*0.5;
+                            x: 5px;
+                            y: -15px;
+                            color: Theme.font_color_dark;
+                            font-family: "Inter";
+                            font-size: 14px;
+                        }
+                    }
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: parent.width - 20px;
+                        height: 1px;
+                        y: 460px - (0.5/1) * ylimit + 1.5px;
+                    }
+                    //bar0.25
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: 20px;
+                        height: 3px;
+                        y: 460px - (0.25/1) * ylimit;
+                        Text {
+                            text: visualisation_data.highest-value*0.25;
+                            x: 5px;
+                            y: -15px;
+                            color: Theme.font_color_dark;
+                            font-family: "Inter";
+                            font-size: 14px;
+                        }
+                    }
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: parent.width - 20px;
+                        height: 1px;
+                        y: 460px - (0.25/1) * ylimit + 1px;
+                    }
+                    //bar0
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: 20px;
+                        height: 3px;
+                        y: 460px;
+                        Text {
+                            text: 0;
+                            x: 5px;
+                            y: -15px;
+                            color: Theme.font_color_dark;
+                            font-family: "Inter";
+                            font-size: 14px;
+                        }
+                    }
+                    Rectangle {
+                        background: Theme.container1;
+                        x: 10px;
+                        width: parent.width - 20px;
+                        height: 1px;
+                        y: 460px + 1.5px;
                     }
                     background: Theme.container2;
                     for data_point[i] in visualisation_data.chrono: point := Point {
                         x: 20px + (52/visualisation_data.chrono.length * i) * 12px;
-                        y: 450px - (data_point.value/visualisation_data.highest-value) * 350px;
+                        y: 460px - (data_point.value/visualisation_data.highest-value) * ylimit - point.height/2 + 1.5px;
                         touch := TouchArea {}
                         Rectangle {
                             background: Theme.container1;
-                            width: 60px;
-                            height: 30px;
+                            width: 80px;
+                            height: 35px;
                             x: -point.width - 60px;
-                            y: -point.height - (self.height - 2px); 
+                            y: -point.height - (self.height - 2px);
                             visible: touch.has-hover;
                             border-radius: 3px;
                             border-color: Theme.accent;
@@ -177,6 +294,14 @@ export component Visualisation {
                                 text: data-point.value;
                                 font-size: 18px;
                                 font-family: "Inter";
+                                y: 2px;
+                            }
+                            Text {
+                                text: touch.has-hover ? data-point.date : "";
+                                color: touch.has-hover ? Theme.font_color_dark : Theme.container2;
+                                font-size: 12px;
+                                font-family: "Inter";
+                                y: 20px;
                             }
                         }
                     }
@@ -186,7 +311,5 @@ export component Visualisation {
     }
 }
 
-//TODO ordentlich angeordnet
-//TODO Skalen
-//TODO kleiner Text seit wann die Daten gewonnen gesammelt wurden
-//maybe linien
+//TODO anzahl punkte verändern (intervall)
+//TODO linienmodus
