@@ -1,4 +1,9 @@
-import { TabWidget, ComboBox, HorizontalBox, VerticalBox } from "std-widgets.slint";
+import {
+    TabWidget,
+    ComboBox,
+    HorizontalBox,
+    VerticalBox,
+} from "std-widgets.slint";
 import { Theme } from "Theme.slint";
 
 export struct GeneralPart {
@@ -13,31 +18,29 @@ export struct ChronoElement {
 export struct VisData {
     general: GeneralPart,
     chrono: [ChronoElement],
-    highest_value: int
-}
+    highest_value: int}
 
-component Point inherits Rectangle{
+component Point inherits Rectangle {
     width: 9px;
     height: self.width;
-    border-radius: self.width/2;
+    border-radius: self.width / 2;
     background: Theme.accent;
 }
 
 export component Visualisation {
-    callback changed_visualisation_exercise(string);
-    callback changed_visualisation_interval(string, string);
-
+    callback changed_visualisation_exercise(string, string, int);
+    callback changed_visualisation_interval(string, string, int);
     in property <[string]> visualisable_exercise_names;
     in property <VisData> visualisation_data;
     in-out property <string> current_exercise: combo.current-value;
+    in-out property <string> current_interval: "day";
+    in-out property <int> unit_count: 30;
     property <bool> lines_visible: false;
-
     Rectangle {
         padding: 10px;
         width: 900px;
         height: 580px;
         background: Theme.container1;
-
         HorizontalBox {
             VerticalBox {
                 alignment: center;
@@ -49,7 +52,7 @@ export component Visualisation {
                     //y: 20px;
                     model: visualisable_exercise_names;
                     selected(current-value) => {
-                        changed_visualisation_exercise(current_exercise);
+                        changed_visualisation_exercise(current_exercise, current_interval, unit_count);
                     }
                 }
                 //General Daten
@@ -67,22 +70,23 @@ export component Visualisation {
                             font-family: "Inter";
                             color: Theme.accent;
                         }
+
                         Text {
                             text: "Max: " + visualisation_data.general.max;
                             font-size: 25px;
                             font-family: "Inter";
                             color: Theme.accent;
-                            
                         }
+
                         Text {
                             text: "Amount: " + visualisation_data.general.amount;
                             font-size: 25px;
                             font-family: "Inter";
                             color: Theme.accent;
-
                         }
                     }
                 }
+
                 Text {
                     text: "Since: " + visualisation_data.chrono[0].date;
                     font-size: 18px;
@@ -90,64 +94,180 @@ export component Visualisation {
                     horizontal-alignment: center;
                     color: Theme.font_color_dark;
                 }
+                //Einheiten-Anzahl
+                Rectangle {
+                    height: 40px;
+                    HorizontalBox {
+                        Rectangle {
+                            background: unit_count == 7 ? Theme.accent : Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
+                            Text {
+                                text: "7";
+                                color: unit_count == 7 ? Theme.container2 : Theme.font_color_dark;
+                            }
+
+                            TouchArea {
+                                clicked => {
+                                    unit_count = 7;
+                                    changed_visualisation_interval(current_exercise, current_interval, 7);
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            background: unit_count == 14 ? Theme.accent : Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
+                            Text {
+                                text: "14";
+                                color: unit_count == 14 ? Theme.container2 : Theme.font_color_dark;
+                            }
+
+                            TouchArea {
+                                clicked => {
+                                    unit_count = 14;
+                                    changed_visualisation_interval(current_exercise, current_interval, 14);
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            background: unit_count == 30 ? Theme.accent : Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
+                            Text {
+                                text: "30";
+                                color: unit_count == 30 ? Theme.container2 : Theme.font_color_dark;
+                            }
+
+                            TouchArea {
+                                clicked => {
+                                    unit_count = 30;
+                                    changed_visualisation_interval(current_exercise, current_interval, 30);
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            background: unit_count == 90 ? Theme.accent : Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
+                            Text {
+                                text: "90";
+                                color: unit_count == 90 ? Theme.container2 : Theme.font_color_dark;
+                            }
+
+                            TouchArea {
+                                clicked => {
+                                    unit_count = 90;
+                                    changed_visualisation_interval(current_exercise, current_interval, 90);
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            background: unit_count == 365 ? Theme.accent : Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
+                            Text {
+                                text: "365";
+                                color: unit_count == 365 ? Theme.container2 : Theme.font_color_dark;
+                            }
+
+                            TouchArea {
+                                clicked => {
+                                    unit_count = 365;
+                                    changed_visualisation_interval(current_exercise, current_interval, 365);
+                                }
+                            }
+                        }
+                    }
+                }
             }
+
             VerticalBox {
                 //Zeitintervalle
                 Rectangle {
                     height: 50px;
                     HorizontalBox {
                         Rectangle {
-                            background: Theme.container2;
+                            background: current_interval == "day" ? Theme.accent : Theme.container2;
                             border-radius: 3px;
                             border-width: 1.5px;
                             border-color: Theme.accent;
                             Text {
                                 text: "Day";
+                                color: current_interval == "day" ? Theme.container2 : Theme.font_color_dark;
                             }
+
                             TouchArea {
-                                clicked => {changed_visualisation_interval(current_exercise, "day");}
+                                clicked => {
+                                    current_interval = "day";
+                                    changed_visualisation_interval(current_exercise, "day", unit_count);
+                                }
                             }
                         }
+
                         Rectangle {
-                            background: Theme.container2;
+                            background: current_interval == "week" ? Theme.accent : Theme.container2;
                             border-radius: 3px;
                             border-width: 1.5px;
                             border-color: Theme.accent;
-
                             Text {
                                 text: "Week";
+                                color: current_interval == "week" ? Theme.container2 : Theme.font_color_dark;
                             }
 
                             TouchArea {
-                                clicked => {changed_visualisation_interval(current_exercise, "week");}
+                                clicked => {
+                                    current_interval = "week";
+                                    changed_visualisation_interval(current_exercise, "week", unit_count);
+                                }
                             }
                         }
+
                         Rectangle {
-                            background: Theme.container2;
+                            background: current_interval == "month" ? Theme.accent : Theme.container2;
                             border-radius: 3px;
                             border-width: 1.5px;
                             border-color: Theme.accent;
                             Text {
                                 text: "Month";
+                                color: current_interval == "month" ? Theme.container2 : Theme.font_color_dark;
                             }
 
                             TouchArea {
-                                clicked => {changed_visualisation_interval(current_exercise, "month");}
+                                clicked => {
+                                    current_interval = "month";
+                                    changed_visualisation_interval(current_exercise, "month", unit_count);
+                                }
                             }
                         }
+
                         Rectangle {
-                            background: Theme.container2;
+                            background: current_interval == "year" ? Theme.accent : Theme.container2;
                             border-radius: 3px;
                             border-width: 1.5px;
                             border-color: Theme.accent;
                             Text {
                                 text: "Year";
+                                color: current_interval == "year" ? Theme.container2 : Theme.font_color_dark;
                             }
 
                             TouchArea {
-                                clicked => {changed_visualisation_interval(current_exercise, "year");}
+                                clicked => {
+                                    current_interval = "year";
+                                    changed_visualisation_interval(current_exercise, "year", unit_count);
+                                }
                             }
                         }
+
                         Rectangle {
                             background: Theme.container2;
                             border-radius: 3px;
@@ -158,7 +278,9 @@ export component Visualisation {
                             }
 
                             TouchArea {
-                                clicked => {lines_visible = !lines_visible;}
+                                clicked => {
+                                    lines_visible = !lines_visible;
+                                }
                             }
                         }
                     }
@@ -180,7 +302,7 @@ export component Visualisation {
                         x: 10px;
                         width: 20px;
                         height: 3px;
-                        y: 460px - (1/1) * ylimit;
+                        y: 460px - (1 / 1) * ylimit;
                         Text {
                             text: visualisation_data.highest-value;
                             x: 5px;
@@ -190,12 +312,13 @@ export component Visualisation {
                             font-size: 14px;
                         }
                     }
+
                     Rectangle {
                         background: Theme.container1;
                         x: 10px;
                         width: parent.width - 20px;
                         height: 1px;
-                        y: 460px - (1/1) * ylimit + 1.5px;
+                        y: 460px - (1 / 1) * ylimit + 1.5px;
                     }
                     //bar0.75
                     Rectangle {
@@ -203,9 +326,9 @@ export component Visualisation {
                         x: 10px;
                         width: 20px;
                         height: 3px;
-                        y: 460px - (0.75/1) * ylimit;
+                        y: 460px - (0.75 / 1) * ylimit;
                         Text {
-                            text: visualisation_data.highest-value*0.75;
+                            text: visualisation_data.highest-value * 0.75;
                             x: 5px;
                             y: -15px;
                             color: Theme.font_color_dark;
@@ -213,12 +336,13 @@ export component Visualisation {
                             font-size: 14px;
                         }
                     }
+
                     Rectangle {
                         background: Theme.container1;
                         x: 10px;
                         width: parent.width - 20px;
                         height: 1px;
-                        y: 460px - (0.75/1) * ylimit + 1px;
+                        y: 460px - (0.75 / 1) * ylimit + 1px;
                     }
                     //bar0.5
                     Rectangle {
@@ -226,9 +350,9 @@ export component Visualisation {
                         x: 10px;
                         width: 20px;
                         height: 3px;
-                        y: 460px - (0.5/1) * ylimit;
+                        y: 460px - (0.5 / 1) * ylimit;
                         Text {
-                            text: visualisation_data.highest-value*0.5;
+                            text: visualisation_data.highest-value * 0.5;
                             x: 5px;
                             y: -15px;
                             color: Theme.font_color_dark;
@@ -236,12 +360,13 @@ export component Visualisation {
                             font-size: 14px;
                         }
                     }
+
                     Rectangle {
                         background: Theme.container1;
                         x: 10px;
                         width: parent.width - 20px;
                         height: 1px;
-                        y: 460px - (0.5/1) * ylimit + 1.5px;
+                        y: 460px - (0.5 / 1) * ylimit + 1.5px;
                     }
                     //bar0.25
                     Rectangle {
@@ -249,9 +374,9 @@ export component Visualisation {
                         x: 10px;
                         width: 20px;
                         height: 3px;
-                        y: 460px - (0.25/1) * ylimit;
+                        y: 460px - (0.25 / 1) * ylimit;
                         Text {
-                            text: visualisation_data.highest-value*0.25;
+                            text: visualisation_data.highest-value * 0.25;
                             x: 5px;
                             y: -15px;
                             color: Theme.font_color_dark;
@@ -259,12 +384,13 @@ export component Visualisation {
                             font-size: 14px;
                         }
                     }
+
                     Rectangle {
                         background: Theme.container1;
                         x: 10px;
                         width: parent.width - 20px;
                         height: 1px;
-                        y: 460px - (0.25/1) * ylimit + 1px;
+                        y: 460px - (0.25 / 1) * ylimit + 1px;
                     }
                     //bar0
                     Rectangle {
@@ -282,6 +408,7 @@ export component Visualisation {
                             font-size: 14px;
                         }
                     }
+
                     Rectangle {
                         background: Theme.container1;
                         x: 10px;
@@ -289,11 +416,13 @@ export component Visualisation {
                         height: 1px;
                         y: 460px + 1.5px;
                     }
+
                     background: Theme.container2;
                     for data_point[i] in visualisation_data.chrono: point := Point {
-                        x: 20px + (52/visualisation_data.chrono.length * i) * 12px;
-                        y: 460px - (data_point.value/visualisation_data.highest-value) * ylimit - point.height/2 + 1.5px;
-                        touch := TouchArea {}
+                        x: 20px + (52 / visualisation_data.chrono.length * i) * 12px;
+                        y: 460px - (data_point.value / visualisation_data.highest-value) * ylimit - point.height / 2 + 1.5px;
+                        touch := TouchArea { }
+
                         Rectangle {
                             background: Theme.container1;
                             width: 80px;
@@ -311,6 +440,7 @@ export component Visualisation {
                                 font-family: "Inter";
                                 y: 2px;
                             }
+
                             Text {
                                 text: touch.has-hover ? data-point.date : "";
                                 color: touch.has-hover ? Theme.font_color_dark : Theme.container2;
@@ -319,31 +449,46 @@ export component Visualisation {
                                 y: 20px;
                             }
                         }
+
                         property <float> x_end: (52.0 / visualisation_data.chrono.length) * 12;
-                        property <int> y_end: ((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5));
+                        property <int> y_end: ((460 - (visualisation_data.chrono[i + 1].value / visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value / visualisation_data.highest-value) * ylimitint + 1.5));
                         if (y_end >= 0 && i != (visualisation_data.chrono.length - 1)): Path {
                             visible: lines_visible;
                             width: (52.0 / visualisation_data.chrono.length) * 12px + 8px;
-                            height: ((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5)) * 1px + 3px;
+                            height: ((460 - (visualisation_data.chrono[i + 1].value / visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value / visualisation_data.highest-value) * ylimitint + 1.5)) * 1px + 3px;
                             x: 1.5px;
                             y: 3px;
                             fill: transparent;
                             stroke: Theme.accent;
                             stroke-width: 2px;
-                            MoveTo { x: 0; y: 0; }
-                            LineTo { x: x_end; y: y_end; }
+                            MoveTo {
+                                x: 0;
+                                y: 0;
+                            }
+
+                            LineTo {
+                                x: x_end;
+                                y: y_end;
+                            }
                         }
                         if (y_end < 0): Path {
                             visible: lines_visible;
                             width: (52.0 / visualisation_data.chrono.length) * 12px + 8px;
-                            height: abs(((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5)) * 1px) + 3px;
+                            height: abs(((460 - (visualisation_data.chrono[i + 1].value / visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value / visualisation_data.highest-value) * ylimitint + 1.5)) * 1px) + 3px;
                             x: 1.5px;
-                            y: (((460 - (visualisation_data.chrono[i+1].value/visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value/visualisation_data.highest-value) * ylimitint + 1.5)) * 1px);
+                            y: (((460 - (visualisation_data.chrono[i + 1].value / visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value / visualisation_data.highest-value) * ylimitint + 1.5)) * 1px);
                             fill: transparent;
                             stroke: Theme.accent;
                             stroke-width: 2px;
-                            MoveTo { x: 0; y: 0; }
-                            LineTo { x: x_end; y: y_end; }
+                            MoveTo {
+                                x: 0;
+                                y: 0;
+                            }
+
+                            LineTo {
+                                x: x_end;
+                                y: y_end;
+                            }
                         }
                     }
                 }
@@ -351,6 +496,3 @@ export component Visualisation {
         }
     }
 }
-
-
-//TODO anzahl punkte verändern (intervall)

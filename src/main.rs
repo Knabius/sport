@@ -383,7 +383,7 @@ fn get_visualisable_exercises() -> Vec<SharedString> {
     visualisable_exercise_names.iter().map(|x| x.into()).collect()
 }
 
-fn visualisation_helper(exercise: &str, interval: &str) -> VisData {
+fn visualisation_helper(exercise: &str, interval: &str, unit_count: i32) -> VisData {
     let vis_data = VISUALISATION_DATA.lock().unwrap();
     let general = vis_data.0.clone();
     let chrono = vis_data.1.clone();
@@ -410,7 +410,7 @@ fn visualisation_helper(exercise: &str, interval: &str) -> VisData {
 
 
     let mut chrono_grouped: Vec<(NaiveDate, i32)> = vec![];
-    while interval_start <= now && !chrono_extracted.is_empty() {
+    while interval_start <= now {
         let interval_stepped = match interval {
             "year" => {
                 interval_start.with_year(interval_start.year() + 1).unwrap()
@@ -432,9 +432,15 @@ fn visualisation_helper(exercise: &str, interval: &str) -> VisData {
             }
         };
 
-        let mut interval_sum: i32 = chrono_extracted.iter().filter(|(date, _)| *date>=interval_start && *date<interval_stepped).map(|(_, reps)| *reps).sum();
+        let interval_sum: i32 = chrono_extracted.iter().filter(|(date, _)| *date>=interval_start && *date<interval_stepped).map(|(_, reps)| *reps).sum();
         chrono_grouped.push((interval_start, interval_sum));
         interval_start = interval_stepped;
+    }
+
+    // Nur die letzten unit_count Einträge behalten
+    let len = chrono_grouped.len();
+    if unit_count > 0 && (unit_count as usize) < len {
+        chrono_grouped = chrono_grouped.split_off(len - unit_count as usize);
     }
 
     let general: GeneralPart = GeneralPart {
@@ -442,8 +448,9 @@ fn visualisation_helper(exercise: &str, interval: &str) -> VisData {
         amount: general_extracted.1,
         max: general_extracted.2,
     };
-    let mut chrono_set = ModelRc::new(VecModel::from(chrono_grouped.iter().map(|(date,value)| ChronoElement {date: (date.to_string().into()), value: (*value)}).collect::<Vec<ChronoElement>>()));
-    let mut vis_data: VisData = VisData { chrono: (chrono_set), general: (general), highest_value: (chrono_grouped.iter().map(|x| x.1).max().unwrap()) };
+    let chrono_set = ModelRc::new(VecModel::from(chrono_grouped.iter().map(|(date,value)| ChronoElement {date: (date.to_string().into()), value: (*value)}).collect::<Vec<ChronoElement>>()));
+    let highest = chrono_grouped.iter().map(|x| x.1).max().unwrap_or(1).max(1);
+    let vis_data: VisData = VisData { chrono: (chrono_set), general: (general), highest_value: highest };
     return vis_data;
 }
 
@@ -688,22 +695,22 @@ fn main() {
         create_visualisation_data();
         
         if let Some(handle) = ui_handle_vis.upgrade() {
-            let data = visualisation_helper(get_visualisable_exercises().first().unwrap().as_str(), "day");
+            let data = visualisation_helper(get_visualisable_exercises().first().unwrap().as_str(), "day", 30);
             handle.set_visualisable_exercise_names(ModelRc::new(VecModel::from(get_visualisable_exercises())));
             handle.set_visualisation_data(data);
         }
     });
 
-    ui.on_changed_visualisation_exercise(move |exercise: SharedString| {
+    ui.on_changed_visualisation_exercise(move |exercise: SharedString, interval: SharedString, unit_count: i32| {
         if let Some(handle) = ui_handle_changed_vis_exercise.upgrade() {
-            let data = visualisation_helper(exercise.as_str(), "day");
+            let data = visualisation_helper(exercise.as_str(), interval.as_str(), unit_count);
             handle.set_visualisation_data(data);
         }
     });
 
-    ui.on_changed_visualisation_interval(move |exercise: SharedString, interval: SharedString| {
+    ui.on_changed_visualisation_interval(move |exercise: SharedString, interval: SharedString, unit_count: i32| {
         if let Some(handle) = ui_handle_changed_vis_interval.upgrade() {
-            let data = visualisation_helper(exercise.as_str(), interval.as_str());
+            let data = visualisation_helper(exercise.as_str(), interval.as_str(), unit_count);
             handle.set_visualisation_data(data);
         }
     });

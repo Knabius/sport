@@ -1,10 +1,22 @@
-import { TabWidget, VerticalBox, HorizontalBox, Switch, ListView, ComboBox } from "std-widgets.slint";
+import {
+    TabWidget,
+    VerticalBox,
+    HorizontalBox,
+    Switch,
+    ListView,
+    ComboBox,
+} from "std-widgets.slint";
 import { RepInput } from "RepInput.slint";
 import { BasicButton } from "BasicButton.slint";
 import { SettingsButton } from "SettingsButton.slint";
 import { Settings, Exercise } from "Settings.slint";
 import { Theme } from "Theme.slint";
-import { Visualisation, GeneralPart, ChronoElement, VisData} from "Visualisation.slint";
+import {
+    Visualisation,
+    GeneralPart,
+    ChronoElement,
+    VisData,
+} from "Visualisation.slint";
 import { VisualisationButton } from "VisualisationButton.slint";
 
 //Enums
@@ -29,8 +41,8 @@ export component MainWindow inherits Window {
     callback change_profile(string);
     callback changed_volume(int);
     callback load_visualisation_data();
-    callback changed_visualisation_exercise(string);
-    callback changed_visualisation_interval(string, string);
+    callback changed_visualisation_exercise(string, string, int);
+    callback changed_visualisation_interval(string, string, int);
     
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
@@ -59,12 +71,10 @@ export component MainWindow inherits Window {
 
     //Visualisation
     in-out property <VisData> visualisation_data;
-
     width: 1200px;
     height: 800px;
     title: "Sport-Tracker";
     background: Theme.background_color;
-
     RepInput {
         visible: current_view == CurrentView.RepInput;
         exercise: chosen_exercise;
@@ -85,7 +95,7 @@ export component MainWindow inherits Window {
             passed_time = 0;
         }
     }
-    
+
     SettingsButton {
         property <CurrentView> last_view;
         open_settings => {
@@ -151,11 +161,11 @@ export component MainWindow inherits Window {
         visible: current_view == CurrentView.Visualisation;
         visualisable_exercise_names: visualisable_exercise_names;
         visualisation_data: visualisation_data;
-        changed_visualisation_exercise(exercise) => {
-            changed_visualisation_exercise(exercise);
+        changed_visualisation_exercise(exercise, interval, unit_count) => {
+            changed_visualisation_exercise(exercise, interval, unit_count);
         }
-        changed_visualisation_interval(exercise, interval) => {
-            changed_visualisation_interval(exercise, interval);
+        changed_visualisation_interval(exercise, interval, unit_count) => {
+            changed_visualisation_interval(exercise, interval, unit_count);
         }
     }
 }
