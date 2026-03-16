@@ -21,7 +21,7 @@ export struct VisData {
     highest_value: int}
 
 component Point inherits Rectangle {
-    width: 9px;
+    width: 8px;
     height: self.width;
     border-radius: self.width / 2;
     background: Theme.accent;
@@ -37,7 +37,6 @@ export component Visualisation {
     in-out property <int> unit_count: 30;
     property <bool> lines_visible: false;
     Rectangle {
-        padding: 10px;
         width: 900px;
         height: 580px;
         background: Theme.container1;
@@ -61,7 +60,6 @@ export component Visualisation {
                     border-color: Theme.accent;
                     border-width: 1px;
                     height: 120px;
-                    padding: 10px;
                     VerticalBox {
                         alignment: start;
                         Text {
@@ -419,7 +417,7 @@ export component Visualisation {
 
                     background: Theme.container2;
                     for data_point[i] in visualisation_data.chrono: point := Point {
-                        x: 20px + (52 / visualisation_data.chrono.length * i) * 12px;
+                        x: 20px + (52.0 / visualisation_data.chrono.length * i) * 12px;
                         y: 460px - (data_point.value / visualisation_data.highest-value) * ylimit - point.height / 2 + 1.5px;
                         touch := TouchArea { }
 
@@ -451,44 +449,35 @@ export component Visualisation {
                         }
 
                         property <float> x_end: (52.0 / visualisation_data.chrono.length) * 12;
-                        property <int> y_end: ((460 - (visualisation_data.chrono[i + 1].value / visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value / visualisation_data.highest-value) * ylimitint + 1.5));
-                        if (y_end >= 0 && i != (visualisation_data.chrono.length - 1)): Path {
+                        property <float> y_end: (((visualisation_data.chrono[i].value - visualisation_data.chrono[i + 1].value) / visualisation_data.highest-value) * ylimitint);
+                        
+                        if (i != (visualisation_data.chrono.length - 1)): Path {
                             visible: lines_visible;
-                            width: (52.0 / visualisation_data.chrono.length) * 12px + 8px;
-                            height: ((460 - (visualisation_data.chrono[i + 1].value / visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value / visualisation_data.highest-value) * ylimitint + 1.5)) * 1px + 3px;
-                            x: 1.5px;
-                            y: 3px;
                             fill: transparent;
                             stroke: Theme.accent;
                             stroke-width: 2px;
-                            MoveTo {
-                                x: 0;
-                                y: 0;
+                            
+                            x: 0;
+                            y: 0;
+                            width: 0px;
+                            height: 0px;
+                            
+                            MoveTo { 
+                                x: point.width / 2px-1; 
+                                y: point.height / 2px-1; 
                             }
-
-                            LineTo {
-                                x: x_end;
-                                y: y_end;
+                            
+                            LineTo { 
+                                x: x_end + point.width/2px-1; 
+                                y: y_end + point.height/2px-1; 
                             }
                         }
-                        if (y_end < 0): Path {
-                            visible: lines_visible;
-                            width: (52.0 / visualisation_data.chrono.length) * 12px + 8px;
-                            height: abs(((460 - (visualisation_data.chrono[i + 1].value / visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value / visualisation_data.highest-value) * ylimitint + 1.5)) * 1px) + 3px;
-                            x: 1.5px;
-                            y: (((460 - (visualisation_data.chrono[i + 1].value / visualisation_data.highest-value) * ylimitint + 1.5) - (460 - (visualisation_data.chrono[i].value / visualisation_data.highest-value) * ylimitint + 1.5)) * 1px);
-                            fill: transparent;
-                            stroke: Theme.accent;
-                            stroke-width: 2px;
-                            MoveTo {
-                                x: 0;
-                                y: 0;
-                            }
-
-                            LineTo {
-                                x: x_end;
-                                y: y_end;
-                            }
+                        
+                        Rectangle {
+                            width: point.width;
+                            height: point.height;
+                            border-radius: point.width / 2;
+                            background: Theme.accent;
                         }
                     }
                 }
