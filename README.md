@@ -11,6 +11,11 @@ A desktop interval timer and tracker for sports activities written in Rust. The 
 - **User Profiles:** Supports multiple profiles. Each profile can have different active exercises.
 - **Local Data Storage:** All logs, configurations, and statistics are stored locally and offline in customizable TOML and text files within the `resources/` folder.
 
+## Screenshots
+<img width="1202" height="832" alt="Image" src="https://github.com/user-attachments/assets/8564063c-c5ea-4e21-a161-ed659708b942" />
+
+<img width="1202" height="832" alt="Image" src="https://github.com/user-attachments/assets/50bc32dd-fed4-4d3c-973b-9c81151ed977" />
+
 ## Technologies
 
 - **Programming Language:** Rust
