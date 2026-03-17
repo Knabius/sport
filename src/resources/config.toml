@@ -1,21 +1,9 @@
-floor = 1
-ceil = 5
+floor = 600
+ceil = 1200
 doubles = true
-last_exercise = "Planche"
-current_profile = "Beinreha"
-volume = 67.0
+last_exercise = "Pushup"
+current_profile = "normal"
+volume = 65.0
 
 [exercises]
-Pullup = { type = "Reps", profiles = { normal = false, Beinreha = false } }
-Pushup = { type = "Reps", profiles = { normal = true , Beinreha = false } }
-Planche = { type = "Reps", profiles = { normal = true , Beinreha = false } }
-Planche-Pushup = { type = "Reps", profiles = { normal = false , Beinreha = false } }
-Lean = { type = "Reps", profiles = {normal = false , Beinreha = false }}
-Abs = { type = "Reps", profiles = {normal = false , Beinreha = false }}
-Lever = { type = "Reps", profiles = {normal = false , Beinreha = false }}
-Sally = { type = "Time", profiles = {normal = false , Beinreha = false }}
-Swing = { type = "Reps", profiles = {normal = false , Beinreha = false }}
-Handstand = { type = "Reps", profiles = { normal = false , Beinreha = false } }
-Stretch = { type = "Reps", profiles = { normal = false , Beinreha = false } }
-Pistol = { type = "Reps", profiles = { normal = false , Beinreha = true } }
-Balance = { type = "Reps", profiles = {normal = false ,  Beinreha = true } }
+Pushup = { type = "Reps", profiles = { normal = true } }
