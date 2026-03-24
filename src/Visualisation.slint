@@ -28,13 +28,14 @@ component Point inherits Rectangle {
 }
 
 export component Visualisation {
-    callback changed_visualisation_exercise(string, string, int);
-    callback changed_visualisation_interval(string, string, int);
+    callback changed_visualisation_exercise(string, string, int, bool);
+    callback changed_visualisation_interval(string, string, int, bool);
     in property <[string]> visualisable_exercise_names;
     in property <VisData> visualisation_data;
     in-out property <string> current_exercise: combo.current-value;
     in-out property <string> current_interval: "day";
     in-out property <int> unit_count: 30;
+    in-out property <bool> show_max_only: false;
     property <bool> lines_visible: false;
     Rectangle {
         width: 900px;
@@ -51,7 +52,7 @@ export component Visualisation {
                     //y: 20px;
                     model: visualisable_exercise_names;
                     selected(current-value) => {
-                        changed_visualisation_exercise(current_exercise, current_interval, unit_count);
+                        changed_visualisation_exercise(current_exercise, current_interval, unit_count, show_max_only);
                     }
                 }
                 //General Daten
@@ -109,7 +110,7 @@ export component Visualisation {
                             TouchArea {
                                 clicked => {
                                     unit_count = 7;
-                                    changed_visualisation_interval(current_exercise, current_interval, 7);
+                                    changed_visualisation_interval(current_exercise, current_interval, 7, show_max_only);
                                 }
                             }
                         }
@@ -127,7 +128,7 @@ export component Visualisation {
                             TouchArea {
                                 clicked => {
                                     unit_count = 14;
-                                    changed_visualisation_interval(current_exercise, current_interval, 14);
+                                    changed_visualisation_interval(current_exercise, current_interval, 14, show_max_only);
                                 }
                             }
                         }
@@ -145,7 +146,7 @@ export component Visualisation {
                             TouchArea {
                                 clicked => {
                                     unit_count = 30;
-                                    changed_visualisation_interval(current_exercise, current_interval, 30);
+                                    changed_visualisation_interval(current_exercise, current_interval, 30, show_max_only);
                                 }
                             }
                         }
@@ -163,7 +164,7 @@ export component Visualisation {
                             TouchArea {
                                 clicked => {
                                     unit_count = 90;
-                                    changed_visualisation_interval(current_exercise, current_interval, 90);
+                                    changed_visualisation_interval(current_exercise, current_interval, 90, show_max_only);
                                 }
                             }
                         }
@@ -181,7 +182,49 @@ export component Visualisation {
                             TouchArea {
                                 clicked => {
                                     unit_count = 365;
-                                    changed_visualisation_interval(current_exercise, current_interval, 365);
+                                    changed_visualisation_interval(current_exercise, current_interval, 365, show_max_only);
+                                }
+                            }
+                        }
+
+                    }
+                }
+                //All und Max Buttons
+                Rectangle {
+                    height: 40px;
+                    HorizontalBox {
+                        Rectangle {
+                            background: unit_count == 0 ? Theme.accent : Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
+                            Text {
+                                text: "All";
+                                color: unit_count == 0 ? Theme.container2 : Theme.font_color_dark;
+                            }
+
+                            TouchArea {
+                                clicked => {
+                                    unit_count = 0;
+                                    changed_visualisation_interval(current_exercise, current_interval, 0, show_max_only);
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            background: show_max_only ? Theme.accent : Theme.container2;
+                            border-radius: 3px;
+                            border-width: 1.5px;
+                            border-color: Theme.accent;
+                            Text {
+                                text: "Max";
+                                color: show_max_only ? Theme.container2 : Theme.font_color_dark;
+                            }
+
+                            TouchArea {
+                                clicked => {
+                                    show_max_only = !show_max_only;
+                                    changed_visualisation_interval(current_exercise, current_interval, unit_count, show_max_only);
                                 }
                             }
                         }
@@ -207,7 +250,7 @@ export component Visualisation {
                             TouchArea {
                                 clicked => {
                                     current_interval = "day";
-                                    changed_visualisation_interval(current_exercise, "day", unit_count);
+                                    changed_visualisation_interval(current_exercise, "day", unit_count, show_max_only);
                                 }
                             }
                         }
@@ -225,7 +268,7 @@ export component Visualisation {
                             TouchArea {
                                 clicked => {
                                     current_interval = "week";
-                                    changed_visualisation_interval(current_exercise, "week", unit_count);
+                                    changed_visualisation_interval(current_exercise, "week", unit_count, show_max_only);
                                 }
                             }
                         }
@@ -243,7 +286,7 @@ export component Visualisation {
                             TouchArea {
                                 clicked => {
                                     current_interval = "month";
-                                    changed_visualisation_interval(current_exercise, "month", unit_count);
+                                    changed_visualisation_interval(current_exercise, "month", unit_count, show_max_only);
                                 }
                             }
                         }
@@ -261,7 +304,7 @@ export component Visualisation {
                             TouchArea {
                                 clicked => {
                                     current_interval = "year";
-                                    changed_visualisation_interval(current_exercise, "year", unit_count);
+                                    changed_visualisation_interval(current_exercise, "year", unit_count, show_max_only);
                                 }
                             }
                         }
@@ -281,6 +324,7 @@ export component Visualisation {
                                 }
                             }
                         }
+
                     }
                 }
                 //Graph

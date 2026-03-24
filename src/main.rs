@@ -383,7 +383,7 @@ fn get_visualisable_exercises() -> Vec<SharedString> {
     visualisable_exercise_names.iter().map(|x| x.into()).collect()
 }
 
-fn visualisation_helper(exercise: &str, interval: &str, unit_count: i32) -> VisData {
+fn visualisation_helper(exercise: &str, interval: &str, unit_count: i32, max_only: bool) -> VisData {
     let vis_data = VISUALISATION_DATA.lock().unwrap();
     let general = vis_data.0.clone();
     let chrono = vis_data.1.clone();
@@ -435,6 +435,32 @@ fn visualisation_helper(exercise: &str, interval: &str, unit_count: i32) -> VisD
         let interval_sum: i32 = chrono_extracted.iter().filter(|(date, _)| *date>=interval_start && *date<interval_stepped).map(|(_, reps)| *reps).sum();
         chrono_grouped.push((interval_start, interval_sum));
         interval_start = interval_stepped;
+    }
+
+    // Max-Only: Stufenfunktion mit echtem Zeitabstand
+    // Für jedes Intervall den laufenden Höchstwert einzelner Ausführungen anzeigen
+    if max_only {
+        let mut running_max = 0;
+        for i in 0..chrono_grouped.len() {
+            let start = chrono_grouped[i].0;
+            let end = if i + 1 < chrono_grouped.len() {
+                chrono_grouped[i + 1].0
+            } else {
+                now + Duration::days(1)
+            };
+
+            // Max einzelner Ausführung in diesem Intervall finden
+            let max_in_interval = chrono_extracted.iter()
+                .filter(|(date, _)| *date >= start && *date < end)
+                .map(|(_, reps)| *reps)
+                .max()
+                .unwrap_or(0);
+
+            if max_in_interval > running_max {
+                running_max = max_in_interval;
+            }
+            chrono_grouped[i].1 = running_max;
+        }
     }
 
     // Nur die letzten unit_count Einträge behalten
@@ -695,22 +721,22 @@ fn main() {
         create_visualisation_data();
         
         if let Some(handle) = ui_handle_vis.upgrade() {
-            let data = visualisation_helper(get_visualisable_exercises().first().unwrap().as_str(), "day", 30);
+            let data = visualisation_helper(get_visualisable_exercises().first().unwrap().as_str(), "day", 30, false);
             handle.set_visualisable_exercise_names(ModelRc::new(VecModel::from(get_visualisable_exercises())));
             handle.set_visualisation_data(data);
         }
     });
 
-    ui.on_changed_visualisation_exercise(move |exercise: SharedString, interval: SharedString, unit_count: i32| {
+    ui.on_changed_visualisation_exercise(move |exercise: SharedString, interval: SharedString, unit_count: i32, max_only: bool| {
         if let Some(handle) = ui_handle_changed_vis_exercise.upgrade() {
-            let data = visualisation_helper(exercise.as_str(), interval.as_str(), unit_count);
+            let data = visualisation_helper(exercise.as_str(), interval.as_str(), unit_count, max_only);
             handle.set_visualisation_data(data);
         }
     });
 
-    ui.on_changed_visualisation_interval(move |exercise: SharedString, interval: SharedString, unit_count: i32| {
+    ui.on_changed_visualisation_interval(move |exercise: SharedString, interval: SharedString, unit_count: i32, max_only: bool| {
         if let Some(handle) = ui_handle_changed_vis_interval.upgrade() {
-            let data = visualisation_helper(exercise.as_str(), interval.as_str(), unit_count);
+            let data = visualisation_helper(exercise.as_str(), interval.as_str(), unit_count, max_only);
             handle.set_visualisation_data(data);
         }
     });

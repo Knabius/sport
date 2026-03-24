@@ -41,8 +41,8 @@ export component MainWindow inherits Window {
     callback change_profile(string);
     callback changed_volume(int);
     callback load_visualisation_data();
-    callback changed_visualisation_exercise(string, string, int);
-    callback changed_visualisation_interval(string, string, int);
+    callback changed_visualisation_exercise(string, string, int, bool);
+    callback changed_visualisation_interval(string, string, int, bool);
     
     //Interval Inputs
     in-out property <bool> floor_input_invalid: false;
@@ -161,11 +161,11 @@ export component MainWindow inherits Window {
         visible: current_view == CurrentView.Visualisation;
         visualisable_exercise_names: visualisable_exercise_names;
         visualisation_data: visualisation_data;
-        changed_visualisation_exercise(exercise, interval, unit_count) => {
-            changed_visualisation_exercise(exercise, interval, unit_count);
+        changed_visualisation_exercise(exercise, interval, unit_count, max_only) => {
+            changed_visualisation_exercise(exercise, interval, unit_count, max_only);
         }
-        changed_visualisation_interval(exercise, interval, unit_count) => {
-            changed_visualisation_interval(exercise, interval, unit_count);
+        changed_visualisation_interval(exercise, interval, unit_count, max_only) => {
+            changed_visualisation_interval(exercise, interval, unit_count, max_only);
         }
     }
 }
