@@ -437,10 +437,13 @@ fn visualisation_helper(exercise: &str, interval: &str, unit_count: i32, max_onl
         interval_start = interval_stepped;
     }
 
-    // Max-Only: Stufenfunktion mit echtem Zeitabstand
-    // Für jedes Intervall den laufenden Höchstwert einzelner Ausführungen anzeigen
+    // Max-Only: Stufenfunktion mit Decay
+    // Höchstwerte die 60 Tage nicht validiert wurden fallen auf den nächst niedrigeren zurück
     if max_only {
-        let mut running_max = 0;
+        let decay_days: i64 = 60;
+        // records: (wert, letztes_validierungsdatum) — sortiert aufsteigend nach Wert
+        let mut records: Vec<(i32, NaiveDate)> = vec![];
+
         for i in 0..chrono_grouped.len() {
             let start = chrono_grouped[i].0;
             let end = if i + 1 < chrono_grouped.len() {
@@ -449,17 +452,32 @@ fn visualisation_helper(exercise: &str, interval: &str, unit_count: i32, max_onl
                 now + Duration::days(1)
             };
 
-            // Max einzelner Ausführung in diesem Intervall finden
-            let max_in_interval = chrono_extracted.iter()
+            // Alle individuellen Einträge in diesem Intervall
+            let entries_in_interval: Vec<(NaiveDate, i32)> = chrono_extracted.iter()
                 .filter(|(date, _)| *date >= start && *date < end)
-                .map(|(_, reps)| *reps)
-                .max()
-                .unwrap_or(0);
+                .cloned()
+                .collect();
 
-            if max_in_interval > running_max {
-                running_max = max_in_interval;
+            // Records validieren: Für jeden Eintrag alle Records <= Wert aktualisieren
+            for (date, reps) in &entries_in_interval {
+                for record in records.iter_mut() {
+                    if *reps >= record.0 {
+                        record.1 = *date;
+                    }
+                }
+                // Neuen Record hinzufügen falls höher als bisheriger Max
+                let current_max = records.last().map(|(v, _)| *v).unwrap_or(0);
+                if *reps > current_max {
+                    records.push((*reps, *date));
+                }
             }
-            chrono_grouped[i].1 = running_max;
+
+            // Verfallene Records entfernen (>60 Tage nicht validiert)
+            records.retain(|(_, last_date)| (end - *last_date).num_days() <= decay_days);
+
+            // Effektiver Max = höchster verbleibender Record
+            let effective_max = records.iter().map(|(v, _)| *v).max().unwrap_or(0);
+            chrono_grouped[i].1 = effective_max;
         }
     }
 
@@ -743,6 +761,3 @@ fn main() {
 
     ui.run().unwrap();
 }
-
-//REMINDER vllt einstellen wieviele daten angezeigt werden 
-//TODO prioritize

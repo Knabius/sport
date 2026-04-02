@@ -59,6 +59,9 @@ export component MainWindow inherits Window {
 
     //View
     in-out property <CurrentView> current_view: CurrentView.BasicButton;
+    //View-Stack für Navigation
+    property <[CurrentView]> view_stack: [CurrentView.BasicButton, CurrentView.BasicButton, CurrentView.BasicButton, CurrentView.BasicButton, CurrentView.BasicButton, CurrentView.BasicButton, CurrentView.BasicButton, CurrentView.BasicButton];
+    property <int> view_stack_size: 0;
 
     //Settings
     in-out property <bool> setting_general_doubles: true;
@@ -97,12 +100,19 @@ export component MainWindow inherits Window {
     }
 
     SettingsButton {
-        property <CurrentView> last_view;
         open_settings => {
             if current_view == CurrentView.Settings {
-                current_view = CurrentView.BasicButton;
+                // Pop: zurück zur vorherigen View
+                if view_stack_size > 0 {
+                    view_stack_size -= 1;
+                    current_view = view_stack[view_stack_size];
+                } else {
+                    current_view = CurrentView.BasicButton;
+                }
             } else {
-                last_view = current_view;
+                // Push: aktuelle View auf Stack, wechsle zu Settings
+                view_stack[view_stack_size] = current_view;
+                view_stack_size += 1;
                 current_view = CurrentView.Settings;
             }
         }
@@ -145,15 +155,22 @@ export component MainWindow inherits Window {
     }
 
     VisualisationButton {
-        property <CurrentView> last_view;
         open_visualisation => {
             if current_view == CurrentView.Visualisation {
-                current_view = CurrentView.BasicButton;
+                // Pop: zurück zur vorherigen View
+                if view_stack_size > 0 {
+                    view_stack_size -= 1;
+                    current_view = view_stack[view_stack_size];
+                } else {
+                    current_view = CurrentView.BasicButton;
+                }
             } else {
-                last_view = current_view;
+                // Push: aktuelle View auf Stack, wechsle zu Visualisation
+                view_stack[view_stack_size] = current_view;
+                view_stack_size += 1;
                 current_view = CurrentView.Visualisation;
+                load_visualisation_data();
             }
-            load_visualisation_data();
         }
     }
 
